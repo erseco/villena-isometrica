@@ -17,12 +17,17 @@ implementation has not started. See `docs/PROJECT_STATE.md`.
 
 ## Development
 
-Requires `uv`, `make` and `git` (later also `bun` and Node).
+Install Python 3.13, uv, Bun, Node.js, make and Git. Then run:
 
 ```sh
-make check      # validate contracts and fixtures
+make install
+make check
 make help
 ```
+
+When the viewer package is available, run `bun run fixture` and then `bun run dev` from
+`apps/viewer` to view fixture tiles. Pipeline commands are described in
+`pipeline/README.md`.
 
 ## Licence
 
