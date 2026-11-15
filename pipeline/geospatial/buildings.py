@@ -71,6 +71,8 @@ class Part:
     ridge: float | None = None  # highest point of a measured pitched roof above base_h
     zoned: bool = False
     footprint: object = None  # zones: the whole outline they were cut from (zoning leaves gaps)
+    parapet: str | None = None  # curated (landmark-details.json)
+    material: str | None = None  # curated
     stats: dict = field(default_factory=dict)
 
     def properties(self) -> dict:
@@ -79,6 +81,10 @@ class Part:
                  "roof": self.roof, "roofSource": self.roof_source, "use": self.use, "landmark": self.landmark}
         if self.ridge is not None:
             props["ridgeHeightM"] = round(self.ridge, 2)
+        if self.parapet:
+            props["parapet"] = self.parapet
+        if self.material:
+            props["material"] = self.material
         return props
 
     @property
