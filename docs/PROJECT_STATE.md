@@ -28,6 +28,11 @@ Last updated: 2026-11-15 (AOI extended to the Plaza de Toros; curated landmark d
   dome. Shapes come from cited Commons photographs, dimensions from the surface model. Image
   15 557 × 9 006 px, 768 tiles, render ≈ 21 s / 5.2 GB.
 
+- **Published (owner's go-ahead, 2026-11-15):** pre-release `tiles-villena-0.1.0-preview.1`
+  (768 tiles, 12.5 MB), pinned in `cities/villena/tiles.lock.json`; the `Deploy Pages` workflow ran
+  end to end for the first time and https://erseco.github.io/villena-isometrica/ serves the viewer.
+  This is a preview, not v0.1.0: WP09, WP11 and WP12 are still owed.
+
 ## Work packages
 
 | WP | Status | Branch / commit | Notes |
@@ -86,8 +91,7 @@ checksums match the manifest). To build the scene from another checkout, either 
 7. **Worktree location**: worktrees default to a sibling directory of the repository, which may be cloud-synced; WP07's is in
    `/tmp`, which a reboot clears (its branch is merged, so nothing is lost).
 8. **GitHub owner placeholders**: documents still say `<github-owner>`; the remote is known now.
-9. **GitHub Pages**: the `Deploy Pages` workflow skips its build and deploy jobs (green, with a
-   notice) until `cities/villena/tiles.lock.json` exists; nothing to decide until the first release.
+9. ~~GitHub Pages~~ — deployed.
 
 ## Open risks
 
