@@ -13,7 +13,7 @@ needs it (`docs/ROADMAP.md`).
 
 | In | Detail |
 |---|---|
-| Area | 1 km²: E 685500–686500, N 4277500–4278500 (EPSG:25830). Castle, Santiago and Santa María churches, Plaza Mayor, town hall, Teatro Chapí, railway station. |
+| Area | 1.84 km²: E 685350–686500, N 4277500–4279100 (EPSG:25830; ADR 0008). Castle, Santiago and Santa María churches, Plaza Mayor, town hall, Teatro Chapí, railway station, Plaza de Toros. |
 | Geometry | Catastro building parts; IGN 0.5 m terrain; heights from the IGN surface model, else floors; OSM streets, land cover, trees. |
 | Rendering | Fixed orthographic 2:1 dimetric camera looking north-east; original Mediterranean pixel-art style; fully procedural, deterministic, no AI. |
 | Viewer | Pan, zoom, touch, keyboard, fullscreen, home; search of selected POIs and all named streets; share URLs (`#map=zoom/lat/lon`); permanent attribution; Spanish UI; desktop and mobile. |
@@ -21,7 +21,7 @@ needs it (`docs/ROADMAP.md`).
 
 | Out | |
 |---|---|
-| The rest of the municipality, the Plaza de Toros (435 m north of the AOI) | later release |
+| The rest of the municipality | later release |
 | Accounts, analytics, tracking, live transport, multiplayer | never planned for v0.x |
 | AI-restyled tiles | optional track (WP10); only after a benchmark and owner approval |
 | Building-aware picking, addresses, routing | not in v0.1 |

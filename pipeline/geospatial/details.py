@@ -12,7 +12,7 @@ KINDS = {"cylinder", "cone", "dome", "gable"}
 ROOF_MATERIALS = {"tile", "slate", "metal"}
 MATERIALS = {"stone", "brick", "plaster", "tile", "slate", "metal"}
 PART_MATERIALS = {"stone", "brick", "plaster"}
-REPLACE_MARGIN = 1.5  # m: parts inside a replacing solid grown by this are dropped
+REPLACE_MARGIN = 1.5  # m: parts lying mostly (> half their area) inside a replacing solid grown by this are dropped
 
 
 COMMON = {"name", "kind", "E", "N", "baseH", "heightM", "material", "dimensionsSource", "replacesParts"}
@@ -77,7 +77,7 @@ def apply(curated: dict, solids: list[Part], clip) -> tuple[list[dict], set[str]
                 raise PipelineError(f"detail {lm}-{d['name']} lies outside the clip rectangle")
             if d.get("replacesParts"):
                 grown = solid.buffer(REPLACE_MARGIN)
-                replaced |= {p.id for p in solids if grown.contains(p.geom)}
+                replaced |= {p.id for p in solids if grown.intersection(p.geom).area > 0.5 * p.geom.area}
             footprints.append(solid)
             props = {"id": f"{lm}-{d['name']}", "landmark": lm, "kind": d["kind"], "baseH": round(d["baseH"], 2),
                      "heightM": round(d["heightM"], 2), "material": d["material"],

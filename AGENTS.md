@@ -9,7 +9,7 @@ Keep this file short; details live in the linked documents.
 An interactive isometric pixel-art map of Villena (Alicante, Spain), pre-rendered offline from
 open geodata and served as static image tiles on GitHub Pages.
 
-**v0.1.0 goals:** ~1 km² around the historic centre and the Castillo de la Atalaya; real
+**v0.1.0 goals:** ~1.8 km² around the historic centre, the Castillo de la Atalaya and the Plaza de Toros; real
 building footprints, terrain, streets and landmarks; a procedural (non-AI) pixel-art render;
 a static viewer with pan/zoom/touch, search, shareable URLs, attribution. Scope: `docs/PROJECT.md`.
 

@@ -3,7 +3,7 @@
 Maintained by the integrator (WP12); the architect edits the contract line and decisions.
 A summary, not a log — details are in `docs/handoffs/`.
 
-Last updated: 2026-11-15 (WP04, WP05, WP06 merged; phase 2 complete).
+Last updated: 2026-11-15 (AOI extended to the Plaza de Toros; curated landmark details, scene contract v1.1).
 
 ## Now
 
@@ -20,6 +20,13 @@ Last updated: 2026-11-15 (WP04, WP05, WP06 merged; phase 2 complete).
   content (`make fixtures-check`).
 - The integration round of 2026-11-15 was run by the architect (Fable 5.2) at the owner's
   request, not by the designated integrator.
+
+- **Scene contract v1.1** (`docs/decisions/0008-landmark-details-and-aoi.md`, owner's instruction):
+  the AOI is now E 685350–686500, N 4277500–4279100 and includes the Plaza de Toros; 21 curated
+  landmark details (`cities/villena/landmark-details.json`) give the castle its towers, bartizans
+  and battlements, both churches their naves and spires, and the bullring its drum, roof and
+  dome. Shapes come from cited Commons photographs, dimensions from the surface model. Image
+  15 557 × 9 006 px, 768 tiles, render ≈ 21 s / 5.2 GB.
 
 ## Work packages
 
@@ -83,6 +90,12 @@ checksums match the manifest). To build the scene from another checkout, either 
    notice) until `cities/villena/tiles.lock.json` exists; nothing to decide until the first release.
 
 ## Open risks
+
+- `geoToWorld` residual is 0.084 m on the larger AOI (limit 0.1 m): no room for a further extension
+  without a better fit.
+- Landmark details were judged by eye against the photographs by the architect only; known
+  leftovers: ragged Catastro parts around Santiago, a stair block on the east side of the
+  bullring, Santa María's spire slightly off its tower.
 
 - Full mode ran on the real sheets for the first time on 2026-11-15 and needed three fixes
   (EPSG:3042 tag, pitched-roof eaves, false trees on zoned landmarks). Other thresholds are
