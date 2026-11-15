@@ -15,13 +15,13 @@ from rasterio.warp import Resampling, reproject
 
 WORLD_CRS = "EPSG:25830"
 
-# Dataset ids the scene build looks for in cities/<city>/datasets.json (see README).
+# Dataset ids the scene build looks for in cities/<city>/datasets.json (docs/contracts/scene.md, 'Pipeline inputs').
 ROLES = {
     "buildings": "catastro-buildings",
     "terrain": "ign-mdt50cm",
     "surface": "ign-mds50cm",
-    "terrain_fallback": "ign-mdt05-wcs",
-    "osm": "osm-overpass",
+    "terrain_fallback": "ign-mdt05",
+    "osm": "osm",
 }
 
 

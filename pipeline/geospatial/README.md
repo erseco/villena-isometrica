@@ -4,14 +4,14 @@ Builds the scene directory defined in `docs/contracts/scene.md` from the dataset
 `cities/<city>/datasets.json`. Reads nothing else from the network or disk, never renders.
 
 ```sh
-uv sync --project pipeline --frozen
-uv run --project pipeline python -m acquisition.fetch --city cities/villena/city.json
-uv run --project pipeline python -m geospatial.build_scene --city cities/villena/city.json \
-    --out build/villena/scene --report cities/villena/scene-report.md --preview cities/villena/scene-preview.png
-# without the two manual IGN files (lower quality, never for a release):
-uv run --project pipeline python -m geospatial.build_scene --city cities/villena/city.json \
-    --out build/villena/scene --terrain-fallback
-uv run --project pipeline pytest pipeline/tests -q
+make install
+make scene CITY=villena            # = the build_scene command below, into build/villena/scene
+PYTHONPATH=pipeline uv run --project pipeline --frozen python -m acquisition.fetch --city cities/villena/city.json
+PYTHONPATH=pipeline uv run --project pipeline --frozen python -m geospatial.build_scene \
+    --city cities/villena/city.json --out build/villena/scene \
+    --report cities/villena/scene-report.md --preview cities/villena/scene-preview.png
+# without the two manual IGN files (lower quality, never for a release): add --terrain-fallback
+uv run --project pipeline --frozen pytest pipeline/tests -q
 ```
 
 `--data-root` (default `.`) is the directory that `localPath` in the dataset manifest is relative
@@ -26,8 +26,8 @@ The build looks datasets up by **id** in the dataset manifest:
 | `catastro-buildings` | Catastro INSPIRE Buildings zip (`*.buildingpart.gml`, `*.building.gml`), read in place with pyogrio's bundled GDAL | both |
 | `ign-mdt50cm` | IGN MDT50cm, bare earth | full |
 | `ign-mds50cm` | IGN MDS50cm, surface | full |
-| `ign-mdt05-wcs` | IGN MDT05 GetCoverage response (5 m) | fallback |
-| `osm-overpass` | Overpass JSON with `out geom` (query: below) | both |
+| `ign-mdt05` | IGN MDT05 GetCoverage response (5 m) | fallback |
+| `osm` | Overpass JSON; ways with inline geometry (`out geom`) or node references (`out body; >; out skel`) — both work, and repeated skeleton copies of member ways are dropped | both |
 
 Plus `cities/<city>/poi-selection.json` (curated POIs, WP01).
 
@@ -41,15 +41,7 @@ be EPSG:25830; OSM is WGS84 and is transformed with PyProj (`always_xy=True`).
 `FORMAT=application/asc`. The response is stored exactly as received (so its checksum is the
 download's) and the raster part is extracted when read.
 
-Overpass query used for Villena (AOI + 120 m margin, bbox in `s,w,n,e`):
-
-```
-[out:json][timeout:90];
-( way["highway"](S,W,N,E); way["railway"](S,W,N,E); way["landuse"](S,W,N,E); way["natural"](S,W,N,E);
-  way["leisure"](S,W,N,E); way["amenity"~"^(parking|grave_yard)$"](S,W,N,E); way["place"="square"](S,W,N,E);
-  way["waterway"="riverbank"](S,W,N,E); node["natural"="tree"](S,W,N,E); );
-out geom;
-```
+The Overpass query and the WCS request for Villena are in `cities/villena/ACQUISITION.md`.
 
 ## What it does
 
@@ -70,6 +62,7 @@ slope = gradient of a 3×3-smoothed MDS.
 | Skip | parts with 0 floors above and ≥ 1 below (underground only); parts with 0 floors above ground and no measured height ≥ 2 m (Catastro: nothing built above ground — patios, terraces) |
 | `baseH` | lowest 1 m terrain cell centre inside the footprint (bilinear at an interior point for tiny parts) |
 | `heightM`, `surface-model` | samples of the surface model inside the footprint shrunk by 0.75 m; requires ≥ 20 samples and p80(nDSM) ≥ 2 m; then p80(MDS) − baseH for flat/unknown roofs, p5(MDS) − baseH (≈ eaves) for pitched roofs |
+| `ridgeHeightM` | pitched roofs only: p95(MDS) − baseH, written when it is at least 0.3 m above `heightM` |
 | `heightM`, `floors` | `floors × 3.0 + 1.0` m when `numberOfFloorsAboveGround ≥ 1` |
 | `heightM`, `default` | 3.0 m (floors unknown) |
 | `roof` | median roof gradient inside the footprint shrunk by 1.25 m: `< 0.06` flat, `> 0.15` pitched, else unknown; always unknown without a surface measurement |
@@ -99,7 +92,19 @@ in metres wins (`widthSource: tag`). `layer` tag, else bridge → 1, tunnel → 
 **Land cover** (closed OSM ways), priority order — earlier classes win where polygons overlap:
 water · sports · cemetery · park (park, garden, playground, grass, recreation_ground,
 village_green) · paved (pedestrian areas, squares, parking) · woodland · scrub · farmland ·
-bare-rock. Multipolygon relations are skipped and counted in the report.
+bare-rock. Closed ways and multipolygon relations whose member ways are closed rings;
+relations with rings split over open ways are counted as unresolved in the report.
+
+**Structures** (`structures.geojson`, written only when not empty) — landmark structures Catastro
+does not model, from OSM: the building polygon (way or multipolygon) containing a POI of kind
+`landmark`, and `barrier=city_wall` ways (also `barrier=wall` when tagged `historic` or inside a
+landmark polygon), buffered to their `width` (default 1.5 m). The outer ring of an accepted
+polygon is not added again as a wall. What Catastro or an earlier structure already covers is
+subtracted; an outline with less than 25 % left is dropped as already modelled, and pieces under
+4 m² are dropped. Heights as for buildings (thin walls are sampled without the inward buffer);
+landmark structures are zoned. **With a surface model a structure is kept only where the model
+measures ≥ 2 m**; without one it gets the labelled 3 m default. In Villena: the castle enclosure
+(OSM relation 8046264, whose hole is the keep that Catastro has) and ten town-wall segments.
 
 **Trees** — OSM `natural=tree` nodes (`source: mapped`; height from the `height` tag, else 6 m;
 crown from `diameter_crown`, else 2.5 m radius). In full mode also canopy peaks: local maxima of
@@ -128,5 +133,5 @@ centroid, `worldBounds` = its bounds inside the AOI, `source.ref` = the longest 
 - Thresholds above were tuned on synthetic data only; check them against the first real
   surface model (the report's disagreement table is the place to look).
 - Zoning works at 0.5 m: narrow walls (< 1 m) may disappear or merge with neighbours.
-- OSM multipolygon relations are not assembled.
+- OSM multipolygon rings split over several open ways are not stitched (1 relation in Villena).
 - Mapped trees without a `height` tag get a default height.

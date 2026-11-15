@@ -15,7 +15,11 @@ terrain is the plane z = 600 + 0.08 x + 0.04 y):
   SYN0008  landmark: tower +18 m, walls +8 m,     -> zoned into tower and walls, courtyard dropped
            courtyard at ground
   tree     Gaussian crown, 8 m at (60, 150)       -> detected tree
-  OSM      two named streets, a pedestrian way with width tag, a park, a mapped tree
+  castle   OSM building polygon (96,96)-(146,134) around SYN0008, surface +5 m in the ring outside the
+           Catastro part                          -> structure ring, 5 m, landmark "keep"
+  wall     OSM barrier=city_wall at x = 160, 1.5 m wide, surface +6 m -> structure, 6 m
+  OSM      two named streets (one with inline geometry, one with node references), a pedestrian way with a
+           width tag, a park as a multipolygon relation with a 10 x 10 m hole, a mapped tree
   POIs     keep (in the tower), plaza
 """
 
@@ -80,6 +84,8 @@ def surface():
         mds[inside(x0, y0, x1, y1)] = NODATA
     b = rect_min_ground(-30, 100, -5, 120)
     mds[inside(-30, 100, -5, 120)] = b + 4.0
+    mds[inside(96, 96, 146, 134)] = rect_min_ground(96, 96, 146, 134) + 5.0   # castle enclosure (OSM only)
+    mds[inside(159.25, 100, 160.75, 130)] = rect_min_ground(159.25, 100, 160.75, 130) + 6.0  # town wall (OSM only)
     b = rect_min_ground(100, 100, 140, 130)
     mds[inside(100, 100, 140, 130)] = b + 8.0
     court = inside(110, 108, 130, 122)
@@ -171,14 +177,33 @@ def overpass(path):
     def way(wid, pts, **tags):
         return {"type": "way", "id": wid, "nodes": list(range(len(pts))), "geometry": [lonlat(*p) for p in pts],
                 "tags": tags}
+    nodes = []
+
+    def ref_way(wid, pts, **tags):  # `out body; >; out skel` style: node references, nodes listed separately
+        ids = []
+        for i, p in enumerate(pts):
+            closing = i == len(pts) - 1 and p == pts[0] and len(pts) > 1
+            ids.append(ids[0] if closing else wid * 100 + i)
+            if not closing:
+                nodes.append({"type": "node", "id": wid * 100 + i, **lonlat(*p)})
+        return {"type": "way", "id": wid, "nodes": ids, "tags": tags}
+
     park = [(40, 140), (80, 140), (80, 170), (40, 170), (40, 140)]
+    hole = [(50, 150), (60, 150), (60, 160), (50, 160), (50, 150)]
+    castle = [(96, 96), (146, 96), (146, 134), (96, 134), (96, 96)]
     elements = [
         {"type": "node", "id": 9001, **lonlat(45, 145), "tags": {"natural": "tree"}},
         way(1001, [(-40, 70), (100, 70), (240, 70)], highway="residential", name="Calle Mayor"),
-        way(1002, [(20, 80), (20, 180)], highway="residential", name="Calle Nueva"),
+        ref_way(1002, [(20, 80), (20, 180)], highway="residential", name="Calle Nueva"),
         way(1003, [(150, 80), (150, 180)], highway="pedestrian", name="Subida al Castillo", width="3 m"),
         way(1004, [(160, 80), (170, 90)], highway="construction"),
-        way(2001, park, leisure="park", name="Jardín"),
+        ref_way(2001, park), ref_way(2002, hole),
+        {"type": "relation", "id": 3001, "tags": {"type": "multipolygon", "leisure": "park", "name": "Jardín"},
+         "members": [{"type": "way", "ref": 2001, "role": "outer"}, {"type": "way", "ref": 2002, "role": "inner"}]},
+        ref_way(4001, castle, building="yes", name="Castillo Sintético"),
+        way(4002, [(160, 100), (160, 130)], barrier="city_wall"),
+        way(4003, [(30, 185), (60, 185)], barrier="wall"),  # a garden wall: not a landmark, must be ignored
+        *nodes,
     ]
     data = {"version": 0.6, "generator": "synthetic", "osm3s": {"timestamp_osm_base": "2026-01-01T00:00:00Z"},
             "elements": elements}
@@ -197,8 +222,8 @@ def city_and_datasets():
         ("catastro-buildings", "catastro-bu.zip", "direct", "vector", "EPSG:25830"),
         ("ign-mdt50cm", "mdt.tif", "manual", "0.5 m", "EPSG:25830"),
         ("ign-mds50cm", "mds.tif", "manual", "0.5 m", "EPSG:25830"),
-        ("ign-mdt05-wcs", "mdt05.asc", "ogc-service", "5 m", "EPSG:25830"),
-        ("osm-overpass", "overpass.json", "direct", "vector", "EPSG:4326"),
+        ("ign-mdt05", "mdt05.asc", "ogc-service", "5 m", "EPSG:25830"),
+        ("osm", "overpass.json", "direct", "vector", "EPSG:4326"),
     ]
     datasets = [{"id": i, "provider": "synthetic", "name": f, "version": "1", "acquisitionDate": "2026-01-01",
                  "coverage": "AOI + margin", "url": "https://example.invalid/" + f, "access": a, "resolution": res,

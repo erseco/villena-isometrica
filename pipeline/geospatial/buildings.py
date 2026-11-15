@@ -27,6 +27,9 @@ FLAT_SLOPE, PITCHED_SLOPE = 0.06, 0.15  # median roof gradient (m/m)
 ZONE_AREA, ZONE_SPREAD, ZONE_STEP = 300.0, 4.0, 3.0  # m2; m (p90-p10 of nDSM); m bins
 ZONE_MIN_AREA, ZONE_MIN_HEIGHT = 9.0, 1.5  # m2; m (median nDSM below this = open ground)
 MIN_PART_AREA = 1.0
+ROOF_ALLOWANCE = 6.0  # m a procedural roof may add when no ridge was measured
+RIDGE_MIN_RISE = 0.3
+STRUCTURE_MIN_SHARE, STRUCTURE_MIN_AREA = 0.25, 4.0  # share of an OSM outline not in Catastro; m2 per piece
 USE = {"1_residential": "residential", "2_agriculture": "agricultural", "3_industrial": "industrial",
        "4_1_office": "commercial", "4_2_retail": "commercial", "4_3_publicServices": "civic"}
 LANDMARK_KINDS = {"landmark", "church", "civic", "museum"}
@@ -65,13 +68,22 @@ class Part:
     roof: str = "unknown"
     roof_source: str = "none"
     landmark: str | None = None
+    ridge: float | None = None  # highest point of a measured pitched roof above base_h
     zoned: bool = False
     stats: dict = field(default_factory=dict)
 
     def properties(self) -> dict:
-        return {"id": self.id, "buildingId": self.building_id, "baseH": round(self.base_h, 2),
-                "heightM": round(self.height, 2), "heightSource": self.height_source, "floors": self.floors,
-                "roof": self.roof, "roofSource": self.roof_source, "use": self.use, "landmark": self.landmark}
+        props = {"id": self.id, "buildingId": self.building_id, "baseH": round(self.base_h, 2),
+                 "heightM": round(self.height, 2), "heightSource": self.height_source, "floors": self.floors,
+                 "roof": self.roof, "roofSource": self.roof_source, "use": self.use, "landmark": self.landmark}
+        if self.ridge is not None:
+            props["ridgeHeightM"] = round(self.ridge, 2)
+        return props
+
+    @property
+    def top(self) -> float:
+        """Highest elevation the renderer may draw for this part (docs/contracts/scene.md, zRange)."""
+        return self.base_h + (self.ridge if self.ridge is not None else self.height + ROOF_ALLOWANCE)
 
 
 def samples(grid: Grid, arr: np.ndarray, geom) -> np.ndarray:
@@ -144,21 +156,33 @@ def classify_roof(slopes: np.ndarray) -> str:
     return "flat" if med < FLAT_SLOPE else "pitched" if med > PITCHED_SLOPE else "unknown"
 
 
-def measure(part: Part, terrain_grid: Grid, terrain: np.ndarray, surface: Surface | None) -> None:
-    """Fill base_h, height, sources and roof of one part."""
+def set_roof_heights(part: Part, mds: np.ndarray) -> None:
+    """Wall top (eaves for pitched roofs) and, for pitched roofs, the measured ridge."""
+    part.height = float(np.percentile(mds, 5 if part.roof == "pitched" else 80)) - part.base_h
+    if part.roof == "pitched":
+        ridge = float(np.percentile(mds, 95)) - part.base_h
+        part.ridge = ridge if ridge - part.height >= RIDGE_MIN_RISE else None
+
+
+def measure(part: Part, terrain_grid: Grid, terrain: np.ndarray, surface: Surface | None,
+            thin: bool = False) -> None:
+    """Fill base_h, height, sources and roof of one part. `thin`: sample unshrunk when shrinking leaves too little
+    (walls narrower than the usual inward buffer)."""
     ground = samples(terrain_grid, terrain, part.geom)
     rep = part.geom.representative_point()
     part.base_h = float(ground.min()) if len(ground) else terrain_grid.bilinear(terrain, rep.x, rep.y)
     if surface is not None:
         inner = part.geom.buffer(-SHRINK_HEIGHT)
         mds = samples(surface.grid, surface.mds, inner)
+        if thin and len(mds) < MIN_SAMPLES:
+            inner = part.geom
+            mds = samples(surface.grid, surface.mds, inner)
         ndsm = samples(surface.grid, surface.ndsm, inner)
         part.stats = {"samples": len(mds)}
         if len(mds) >= MIN_SAMPLES and len(ndsm) >= MIN_SAMPLES and np.percentile(ndsm, 80) >= MIN_MEASURED:
             part.roof = classify_roof(samples(surface.grid, surface.slope, part.geom.buffer(-SHRINK_SLOPE)))
             part.roof_source = "none" if part.roof == "unknown" else "surface-model"
-            q = 5 if part.roof == "pitched" else 80  # eaves for pitched roofs, roof plane for flat ones
-            part.height = float(np.percentile(mds, q)) - part.base_h
+            set_roof_heights(part, mds)
             part.height_source = "surface-model"
             part.stats["spread"] = float(np.percentile(ndsm, 90) - np.percentile(ndsm, 10))
             if part.height > 0:
@@ -167,7 +191,7 @@ def measure(part: Part, terrain_grid: Grid, terrain: np.ndarray, surface: Surfac
         part.height, part.height_source = part.floors * METRES_PER_FLOOR + FLOOR_OFFSET, "floors"
     else:
         part.height, part.height_source = DEFAULT_HEIGHT, "default"
-    part.roof, part.roof_source = "unknown", "none"
+    part.roof, part.roof_source, part.ridge = "unknown", "none", None
 
 
 def zone(part: Part, terrain_grid: Grid, terrain: np.ndarray, surface: Surface) -> list[Part]:
@@ -203,7 +227,7 @@ def zone(part: Part, terrain_grid: Grid, terrain: np.ndarray, surface: Surface) 
         inner = poly.buffer(-SHRINK_SLOPE)
         z.roof = classify_roof(samples(g, surface.slope, inner)) if not inner.is_empty else "unknown"
         z.roof_source = "none" if z.roof == "unknown" else "surface-model"
-        z.height = float(np.percentile(mds_z, 5 if z.roof == "pitched" else 80)) - z.base_h
+        set_roof_heights(z, mds_z)
         z.height_source = "surface-model"
         if z.height > 0:
             zones.append(z)
@@ -260,5 +284,39 @@ def build(zip_path: Path, clip_bounds, terrain_grid: Grid, terrain: np.ndarray, 
                 kept.extend(zones)
                 continue
         kept.append(p)
+    counts["kept"] = len(kept)
+    return kept, counts
+
+
+def build_structures(found: list[dict], parts: list[Part], clip_bounds, terrain_grid: Grid, terrain: np.ndarray,
+                     surface: Surface | None, pois: list[dict]) -> tuple[list[Part], dict]:
+    """OSM landmark structures (osm.structures) -> parts, minus what Catastro already covers.
+
+    With a surface model a structure is kept only where the model measures it (>= MIN_MEASURED): an OSM outline
+    says where a wall is, not that it still stands or how tall it is. Without one it gets the labelled default.
+    """
+    clip = box(*clip_bounds)
+    taken = shapely.union_all([p.geom for p in parts]) if parts else Polygon()  # Catastro, then earlier structures
+    names = {p["id"]: p["name"] for p in pois}
+    kept, counts = [], {"found": len(found), "alreadyCovered": 0, "unmeasuredDropped": 0, "zoned": 0}
+    for s in sorted(found, key=lambda s: s["id"]):
+        rest = s["geometry"].difference(taken)
+        if rest.area < STRUCTURE_MIN_SHARE * s["geometry"].area:
+            counts["alreadyCovered"] += 1  # Catastro models this building; what is left are digitising slivers
+            continue
+        pieces = [g for g in clean(rest, clip) if g.area >= STRUCTURE_MIN_AREA]
+        taken = taken.union(s["geometry"])
+        for i, g in enumerate(pieces, 1):
+            fortified = s["id"].startswith("osm-way-") and s["landmark"] is None or \
+                FORTIFICATION.search(names.get(s["landmark"], "") + " " + (s["name"] or "")) is not None
+            p = Part(s["id"] if len(pieces) == 1 else f"{s['id']}-{i}", s["id"], g, None,
+                     "fortification" if fortified else "other", landmark=s["landmark"])
+            measure(p, terrain_grid, terrain, surface, thin=True)
+            if surface is not None and p.height_source != "surface-model":
+                counts["unmeasuredDropped"] += 1
+                continue
+            zones = zone(p, terrain_grid, terrain, surface) if surface is not None and needs_zoning(p) else []
+            counts["zoned"] += bool(zones)
+            kept.extend(zones or [p])
     counts["kept"] = len(kept)
     return kept, counts

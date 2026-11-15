@@ -70,6 +70,42 @@ def test_heights_and_sources(scene):
     assert {v["use"] for k, v in p.items() if k.startswith("SYN0008")} == {"fortification"}
 
 
+def test_pitched_roof_has_measured_ridge(scene):
+    p = features(scene, "buildings")["SYN0002_part1"]["properties"]
+    ridge_top = ground(50, 20) + 6 + 1.6
+    assert p["baseH"] + p["ridgeHeightM"] == pytest.approx(ridge_top, abs=0.3) and p["ridgeHeightM"] > p["heightM"]
+    assert "ridgeHeightM" not in features(scene, "buildings")["SYN0001_part1"]["properties"]  # flat roof
+
+
+def test_structures_from_osm(scene):
+    from shapely.geometry import shape
+    from shapely.ops import unary_union
+    s = features(scene, "structures")
+    ring = [f for k, f in s.items() if k.startswith("osm-way-4001")]
+    wall = [f for k, f in s.items() if k.startswith("osm-way-4002")]
+    assert ring and wall and not any(k.startswith("osm-way-4003") for k in s)  # garden wall ignored
+    for f in ring:  # castle enclosure outside the Catastro part: +5 m above ground(96, 96)
+        p = f["properties"]
+        assert p["baseH"] + p["heightM"] == pytest.approx(ground(96, 96) + 5, abs=0.3)
+        assert (p["landmark"], p["use"], p["floors"]) == ("keep", "fortification", None)
+        assert p["heightSource"] == "surface-model"
+    catastro = unary_union([shape(f["geometry"]) for f in features(scene, "buildings").values()])
+    assert unary_union([shape(f["geometry"]) for f in ring]).intersection(catastro).area < 0.5  # nothing drawn twice
+    assert unary_union([shape(f["geometry"]) for f in ring]).area == pytest.approx(50 * 38 - 40 * 30, rel=0.1)
+    p = wall[0]["properties"]  # 1.5 m wide: only measurable without the inward buffer
+    assert p["baseH"] + p["heightM"] == pytest.approx(ground(159.25, 100) + 6, abs=0.3)
+    assert (p["landmark"], p["use"], p["heightSource"]) == (None, "fortification", "surface-model")
+    manifest = json.loads((scene / "scene.json").read_text())
+    assert manifest["layers"]["structures"]["count"] == len(s)
+
+
+def test_scene_pois_validate(scene):
+    schema = json.loads((SCHEMA.parent / "scene-pois.schema.json").read_text())
+    doc = json.loads((scene / "pois.json").read_text())
+    jsonschema.Draft202012Validator(schema).validate(doc)
+    assert [p["id"] for p in doc["pois"]] == sorted(p["id"] for p in doc["pois"])
+
+
 def test_part_straddling_the_clip_edge_is_clipped(scene):
     f = features(scene, "buildings")["SYN0007_part1"]
     xs = [x for x, _ in f["geometry"]["coordinates"][0]]
@@ -111,7 +147,10 @@ def test_roads_and_landcover(scene):
     assert r["osm-way-1001"]["widthSource"] == "class-default"
     xs = [x for x, _ in features(scene, "roads")["osm-way-1001"]["geometry"]["coordinates"]]
     assert min(xs) == E0 - 20 and max(xs) == E0 + 220
-    assert [v["properties"]["class"] for v in features(scene, "landcover").values()] == ["park"]
+    park = features(scene, "landcover")["osm-relation-3001"]  # multipolygon relation, member ways as node refs
+    assert park["properties"]["class"] == "park" and len(park["geometry"]["coordinates"]) == 2  # outer + hole
+    from shapely.geometry import shape
+    assert shape(park["geometry"]).area == pytest.approx(40 * 30 - 10 * 10, abs=0.5)
 
 
 def test_pois(scene):
@@ -133,7 +172,9 @@ def test_fallback_mode(tmp_path):
     assert p["SYN0001_part1"]["heightM"] == 7.0 and "SYN0008_part1" in p
     assert [v["properties"]["source"] for v in features(out, "trees").values()] == ["mapped"]
     ids = [d["datasetId"] for d in json.loads((out / "scene.json").read_text())["provenance"]]
-    assert "ign-mdt05-wcs" in ids and "ign-mds50cm" not in ids
+    assert "ign-mdt05" in ids and "ign-mds50cm" not in ids
+    s = {k: v["properties"] for k, v in features(out, "structures").items()}  # outlines only: labelled default
+    assert s and {v["heightSource"] for v in s.values()} == {"default"}
 
 
 def copy_data(tmp_path):
@@ -235,3 +276,49 @@ def test_landmark_snaps_to_nearest_building_only():
                                           "E": 14 + 11.03, "N": 14 + 11.03}])
     assert (keep.landmark, keep2.landmark, house.landmark) == ("castle", "castle", None)
     assert keep.use == keep2.use == "fortification" and house.use == "residential"
+
+
+def test_load_keeps_the_tagged_copy_of_repeated_elements(tmp_path):
+    from geospatial import osm
+    body = {"elements": [
+        {"type": "node", "id": 1, "lat": 38.0, "lon": -0.8}, {"type": "node", "id": 2, "lat": 38.001, "lon": -0.8},
+        {"type": "way", "id": 5, "nodes": [1, 2], "tags": {"highway": "residential"}},
+        {"type": "way", "id": 5, "nodes": [1, 2]},  # skeleton copy emitted by `>; out skel`
+    ]}
+    (tmp_path / "o.json").write_text(json.dumps(body))
+    ways = [e for e in osm.load(tmp_path / "o.json") if e["type"] == "way"]
+    assert len(ways) == 1 and ways[0]["tags"] == {"highway": "residential"} and len(ways[0]["geometry"]) == 2
+
+
+def test_structures_skip_duplicates_and_buildings_catastro_already_has():
+    """Seen in Villena: the castle is a multipolygon whose outer way is also tagged building=yes, and the theatre's
+    OSM outline is already covered by Catastro parts."""
+    from pyproj import Transformer
+    from shapely.geometry import box
+
+    from geospatial import osm
+    from geospatial.buildings import Part, build_structures
+    from geospatial.inputs import Grid
+    to_geo = Transformer.from_crs("EPSG:25830", "EPSG:4326", always_xy=True)
+
+    def ring(x0, y0, x1, y1):
+        pts = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
+        return [dict(zip(("lon", "lat"), to_geo.transform(E0 + x, N0 + y), strict=True)) for x, y in pts]
+
+    elements = [
+        {"type": "relation", "id": 1, "tags": {"type": "multipolygon", "building": "yes"}, "rings": [
+            ("outer", ring(0, 0, 60, 60), 10), ("inner", ring(20, 20, 40, 40), 11)]},
+        {"type": "way", "id": 10, "tags": {"barrier": "city_wall"}, "geometry": ring(0, 0, 60, 60)},  # its outer ring
+        {"type": "way", "id": 20, "tags": {"building": "yes"}, "geometry": ring(100, 0, 120, 20)},  # the theatre
+    ]
+    pois = [{"id": "castle", "kind": "landmark", "name": "Castillo", "E": E0 + 5, "N": N0 + 5},
+            {"id": "theatre", "kind": "landmark", "name": "Teatro", "E": E0 + 110, "N": N0 + 10}]
+    found = osm.structures(elements, (E0 - 20, N0 - 20, E0 + 220, N0 + 220), pois)
+    assert [s["id"] for s in found] == ["osm-relation-1", "osm-way-20"]
+    import numpy as np
+    grid = Grid.covering((E0 - 20, N0 - 20, E0 + 220, N0 + 220), 1.0)
+    catastro = [Part("T_part1", "T", box(E0 + 100.5, N0, E0 + 120, N0 + 20), 2, "other")]  # covers 97 % of it
+    parts, counts = build_structures(found, catastro, (E0 - 20, N0 - 20, E0 + 220, N0 + 220), grid,
+                                     np.full((240, 240), 600.0, "float32"), None, pois)
+    assert [p.id for p in parts] == ["osm-relation-1"] and counts["alreadyCovered"] == 1
+    assert parts[0].geom.area == pytest.approx(60 * 60 - 20 * 20, abs=0.5)  # the courtyard stays open

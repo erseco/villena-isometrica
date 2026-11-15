@@ -72,13 +72,13 @@
     "raw": true,
     "derivatives": true
    },
-   "sizeBytes": 26895,
-   "sha256": "bec342f9a0d35c6477e653e12d38d6e0df1b158128e4c480eb26f5b544e74317",
+   "sizeBytes": 28397,
+   "sha256": "705b9fab909949205692756fbb24b0ba330a99698aa2c24a851d5b90e1485338",
    "localPath": "mds.tif",
    "retrievedAt": "2026-01-01"
   },
   {
-   "id": "ign-mdt05-wcs",
+   "id": "ign-mdt05",
    "provider": "synthetic",
    "name": "mdt05.asc",
    "version": "1",
@@ -103,7 +103,7 @@
    "retrievedAt": "2026-01-01"
   },
   {
-   "id": "osm-overpass",
+   "id": "osm",
    "provider": "synthetic",
    "name": "overpass.json",
    "version": "1",
@@ -122,8 +122,8 @@
     "raw": true,
     "derivatives": true
    },
-   "sizeBytes": 1965,
-   "sha256": "2e1fce54bebd98cce8f566d2b4b6ad1d6ff9fb942adc075effeb0163e317b24b",
+   "sizeBytes": 3869,
+   "sha256": "7d82b30ef1eeba5057dc632b83a21ecaa7a7e47f3c18884909bfcba0a96606a5",
    "localPath": "overpass.json",
    "retrievedAt": "2026-01-01"
   }

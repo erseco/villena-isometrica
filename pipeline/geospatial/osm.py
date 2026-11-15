@@ -1,4 +1,7 @@
-"""OpenStreetMap (Overpass JSON with `out geom`) -> roads, land cover, mapped trees, street POIs.
+"""OpenStreetMap (Overpass JSON) -> roads, land cover, mapped trees, landmark structures, street POIs.
+
+Ways may carry inline geometry (`out geom`) or node references (`out body; >; out skel`); `load`
+normalises both, and resolves the member ways of multipolygon relations.
 
 Kept separate from Catastro-derived data (ODbL; see docs/LICENSING.md).
 """
@@ -45,13 +48,34 @@ LANDCOVER = [
     ("bare-rock", [("natural", "bare_rock"), ("natural", "scree"), ("natural", "sand")]),
 ]
 DEFAULT_TREE_HEIGHT, DEFAULT_CROWN_RADIUS = 6.0, 2.5
+DEFAULT_WALL_WIDTH = 1.5
 
 
 def load(path: Path) -> list[dict]:
+    """Elements sorted by (type, id). Every way gets `geometry`; every relation gets `rings`:
+    (role, geometry, way id) per member way."""
     data = json.loads(path.read_text())
     if "elements" not in data:
         raise PipelineError(f"{path}: not an Overpass JSON response")
-    return sorted(data["elements"], key=lambda e: (e["type"], e["id"]))
+    unique: dict[tuple, dict] = {}
+    for e in data["elements"]:  # `>; out skel` repeats member ways and nodes without tags: keep the tagged copy
+        key = (e["type"], e["id"])
+        if key not in unique or (e.get("tags") and not unique[key].get("tags")):
+            unique[key] = e
+    elements = [unique[k] for k in sorted(unique)]
+    nodes = {e["id"]: {"lat": e["lat"], "lon": e["lon"]} for e in elements if e["type"] == "node"}
+    ways = {}
+    for e in elements:
+        if e["type"] == "way":
+            if "geometry" not in e:
+                pts = [nodes.get(n) for n in e.get("nodes", [])]
+                e["geometry"] = pts if all(pts) else []  # a way reaching outside the extract cannot be resolved
+            ways[e["id"]] = e
+    for e in elements:
+        if e["type"] == "relation":
+            e["rings"] = [(m.get("role") or "outer", m.get("geometry") or ways.get(m["ref"], {}).get("geometry") or [],
+                           m["ref"]) for m in e.get("members", []) if m["type"] == "way"]
+    return elements
 
 
 def _metres(value: str | None) -> float | None:
@@ -64,12 +88,24 @@ def _line(way: dict) -> LineString | None:
     return LineString(pts) if len(pts) >= 2 else None
 
 
-def _ring(way: dict) -> Polygon | None:
-    geom = way.get("geometry") or []
+def _ring(geom: list) -> Polygon | None:
     if len(geom) < 4 or geom[0] != geom[-1]:
         return None
-    poly = Polygon([TO_WORLD.transform(p["lon"], p["lat"]) for p in geom])
-    return shapely.make_valid(poly)
+    return shapely.make_valid(Polygon([TO_WORLD.transform(p["lon"], p["lat"]) for p in geom]))
+
+
+def polygon_of(e: dict):
+    """Area of a closed way or of a multipolygon relation whose member ways are closed rings; else None."""
+    if e["type"] == "way":
+        return _ring(e.get("geometry") or [])
+    if e["type"] != "relation" or e.get("tags", {}).get("type") != "multipolygon":
+        return None
+    rings = [(role, _ring(geom)) for role, geom, _ in e.get("rings", [])]
+    if not rings or any(r is None for _, r in rings):
+        return None  # ponytail: rings split over several open ways are not stitched; add line-merging if needed
+    outer = shapely.union_all([r for role, r in rings if role != "inner"])
+    inner = shapely.union_all([r for role, r in rings if role == "inner"])
+    return outer.difference(inner)
 
 
 def _pieces(geom, kind) -> list:
@@ -111,7 +147,7 @@ def roads(elements: list[dict], clip_bounds) -> tuple[list[dict], dict]:
 def landcover(elements: list[dict], clip_bounds) -> tuple[list[dict], dict]:
     clip = box(*clip_bounds)
     taken = Polygon()
-    out, counts = [], {"relationsSkipped": 0}
+    out, counts = [], {"relationsUnresolved": 0}
     for cls, rules in LANDCOVER:
         for e in elements:
             tags = e.get("tags", {})
@@ -119,20 +155,58 @@ def landcover(elements: list[dict], clip_bounds) -> tuple[list[dict], dict]:
                 continue
             if cls == "paved" and tags.get("highway") == "pedestrian" and tags.get("area") != "yes":
                 continue
-            if e["type"] == "relation":
-                counts["relationsSkipped"] += 1  # ponytail: multipolygon relations skipped; assemble if they matter
+            if e["type"] == "node":
                 continue
-            poly = _ring(e) if e["type"] == "way" else None
+            poly = polygon_of(e)
             if poly is None:
+                counts["relationsUnresolved"] += e["type"] == "relation"
                 continue
             free = poly.intersection(clip).difference(taken)
             taken = taken.union(poly.intersection(clip))
             pieces = [orient(p, 1.0) for p in _pieces(free, Polygon) if p.area >= 1.0]
             for i, g in enumerate(pieces, 1):
                 out.append({"geometry": g, "properties": {
-                    "id": f"osm-way-{e['id']}" + (f"-{i}" if len(pieces) > 1 else ""), "class": cls,
+                    "id": f"osm-{e['type']}-{e['id']}" + (f"-{i}" if len(pieces) > 1 else ""), "class": cls,
                     "name": tags.get("name")}})
     return out, counts
+
+
+def structures(elements: list[dict], clip_bounds, pois: list[dict]) -> list[dict]:
+    """Landmark structures Catastro does not model: the OSM building polygon around a `landmark` POI, and walls.
+
+    Returns dicts with id, geometry (clipped), landmark (POI id or None), name. docs/contracts/scene.md.
+    """
+    clip = box(*clip_bounds)
+    landmarks = [(p["id"], Point(p["E"], p["N"])) for p in sorted(pois, key=lambda p: p["id"])
+                 if p["kind"] == "landmark"]
+    out, areas, outer_members = [], [], set()
+    for e in elements:  # relations sort before ways, so a relation is seen before its member ways
+        tags = e.get("tags", {})
+        if e["type"] == "node" or tags.get("building", "no") == "no":
+            continue
+        if e["type"] == "way" and e["id"] in outer_members:
+            continue  # the outer ring of an accepted multipolygon is that same building without its holes
+        poly = polygon_of(e)
+        hit = next((pid for pid, pt in landmarks if poly is not None and poly.contains(pt)), None)
+        if hit:
+            outer_members.update(ref for role, _, ref in e.get("rings", []) if role != "inner")
+            areas.append((hit, poly))
+            out.append({"id": f"osm-{e['type']}-{e['id']}", "geometry": poly.intersection(clip), "landmark": hit,
+                        "name": tags.get("name")})
+    for e in elements:
+        tags = e.get("tags", {})
+        if e["type"] != "way" or tags.get("barrier") not in ("city_wall", "wall") or e["id"] in outer_members:
+            continue  # (the outer ring of an accepted polygon is its own boundary, not another wall)
+        line = _line(e)
+        if line is None:
+            continue
+        inside = next((pid for pid, poly in areas if poly.buffer(1.0).contains(line)), None)
+        if tags["barrier"] == "wall" and inside is None and "historic" not in tags:
+            continue  # garden and property walls are not landmarks
+        width = _metres(tags.get("width")) or DEFAULT_WALL_WIDTH
+        out.append({"id": f"osm-way-{e['id']}", "geometry": line.buffer(width / 2, cap_style="flat").intersection(clip),
+                    "landmark": inside, "name": tags.get("name")})
+    return [s for s in out if not s["geometry"].is_empty]
 
 
 def mapped_trees(elements: list[dict], clip_bounds) -> list[dict]:

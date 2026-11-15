@@ -147,3 +147,60 @@ look at:
 WP01 (dataset manifest with the ids above, `ACQUISITION.md`, `poi-selection.json`); the owner
 downloads the two IGN sheets; then rerun this prompt's section 7.5 to produce
 `build/villena/scene`, `cities/villena/scene-report.md` and `scene-preview.png` in full mode.
+
+---
+
+# Round 2 — after gate G1 (2026-11-15)
+
+| Field | Value |
+|---|---|
+| Who | Claude Fable 5.2 (`claude-fable-5-2`), acting as architect and integrator at the owner's request ("consolidar lo hecho") |
+| Branch | `agent/wp03-gis-pipeline`, with `main` (WP07, WP01, frozen contracts) merged in |
+| Status | **READY FOR REVIEW** — code complete against the frozen contracts. The Villena scene is fallback-mode only until the owner downloads the two IGN sheets. |
+
+## What changed
+
+- Python project: WP07's `pyproject.toml`/`uv.lock` adopted (wheels only, not a package); added ruff rule
+  selection and pytest `pythonpath`. Commands now use `PYTHONPATH=pipeline` or `make scene`.
+- Dataset ids follow the contract: `ign-mdt05`, `osm` (were `ign-mdt05-wcs`, `osm-overpass`).
+- OSM loader accepts node-reference extracts (WP01's format), drops the untagged duplicate copies that
+  `>; out skel` emits, and assembles multipolygon relations made of closed rings.
+- `ridgeHeightM` for measured pitched roofs; `heightM` stays the wall top (contract R-13).
+- New optional `structures` layer (ADR 0007): castle enclosure and town walls from OSM.
+- Scene POIs validated against `scene-pois.schema.json` inside the build.
+- Requests 1, 2 and 3 of round 1 are resolved by ADR 0007; request 4 by adopting WP07's files.
+
+## Tests and validation executed
+
+| Command | Result |
+|---|---|
+| `uv run --project pipeline --frozen ruff check pipeline` | pass (ruff 0.17.5) |
+| `uv run --project pipeline --frozen pytest pipeline/tests -q -W error` | **31 passed** |
+| `acquisition.fetch` against WP01's manifest and downloads | `ok` for `catastro-buildings`, `ign-mdt05`, `osm`; the two manual IGN datasets reported missing (exit 1, as designed) |
+| `build_scene --terrain-fallback` on the real data, twice | identical sha256 for every file; `scene.json` and `pois.json` validate |
+| Full mode on real IGN rasters | **not run** — files not downloaded yet |
+| Linux | **not run** |
+
+## Real Villena scene (fallback mode) — `cities/villena/scene-report.md`, `scene-preview.png`
+
+7 710 building parts (all heights from floors), 11 structures (castle enclosure + 10 wall segments, default
+height), 505 road features, 48 land-cover polygons, 11 mapped trees, 169 POIs (25 curated + 144 streets),
+`zRange` −7…163, predicted master image 11 314 × 6 836 px, 2.9 s, 314 MB peak. Raw data was read from the
+WP01 worktree (`--data-root`); nothing raw or derived is committed except the report and the preview image.
+
+Defects found on real data and fixed in this round: the castle's outer ring was added twice (it is also
+tagged `barrier=city_wall`); the theatre's OSM outline, already modelled by Catastro, left slivers; WP01's
+extract repeats member ways without tags.
+
+## Known problems
+
+- Full-mode thresholds are still tuned on synthetic data only — the first run with the IGN sheets must be
+  read critically (disagreement table, castle zones).
+- In fallback mode the castle enclosure is one 3 m block: an outline with a labelled default, not a castle.
+- One OSM multipolygon in the AOI has rings split over open ways and is skipped.
+- Review by another provider (Codex) is still owed, per `AGENTS.md`.
+
+## Recommended next task
+
+Owner: download the two IGN sheets (`cities/villena/ACQUISITION.md` §3), pin their checksums in
+`cities/villena/datasets.json`, run `make scene`. Then WP04 can render the real scene.
