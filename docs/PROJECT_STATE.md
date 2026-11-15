@@ -9,7 +9,7 @@ Last updated: 2026-11-15 (WP04, WP05, WP06 merged; phase 2 complete).
 
 - **Contracts: FROZEN v1** at commit `417f07e` (`docs/decisions/0007-g1-contract-freeze.md`).
   Changes only through `prompts/00-bootstrap.md` Task B.
-- Phases 1 and 2 are complete. **Next: WP08 (tests), then the first real build.**
+- Phases 1 and 2 are complete. **Next: WP09 (visual QA) on the full-mode build, WP11 review, WP12 release.**
 - WP04–WP06 were run at the owner's request by Claude models in a workflow (Opus 5.5 / Sonnet 5.5),
   each reviewed by the other Claude model and merged by the architect. No non-Claude review yet.
 - `main` contains the bootstrap, the WP02 review, WP07 tooling/CI, WP01 data, the freeze and the
@@ -33,7 +33,7 @@ Last updated: 2026-11-15 (WP04, WP05, WP06 merged; phase 2 complete).
 | WP04 render engine | done, merged | `feature/wp04-render-engine` @ `1d5623b` | Opus 5.5; reviewed by Sonnet 5.5 (approve). Software rasteriser in TypeScript (ADR 0006; Three.js spike rejected: output depended on chunk size). Villena fallback scene renders in ≈ 10 s, 3 GB. |
 | WP05 viewer | done, merged | `feature/wp05-frontend` @ `3cde035` | Sonnet 5.5; reviewed by Opus 5.5 (2 blocking findings fixed: `schemaVersion` check, approximate-position flag). 94 kB gzip. |
 | WP06 tile export | done, merged | `feature/wp06-tile-export` @ `6bc35c0` | Opus 5.5; reviewed by Sonnet 5.5 (approve). Indexed PNG, mode kernel. Only run on the synthetic fixture. |
-| WP08 tests | **ready to start** | | owes fixture requests to the architect (R-04, R-20) |
+| WP08 tests | done, merged | `feature/wp08-testing` @ `2adc1dd` | Sonnet 5.5; reviewed by Opus 5.5 (approve, mutation-checked). 53 integration tests + 5 viewer e2e. Fixture requests (R-04, R-20) are in its handoff. |
 | WP09 visual QA | waiting: real tiles | | |
 | WP10 AI benchmark | optional; waiting: real render | | Phase B needs a budget approval |
 | WP11 independent review | waiting: WP03–WP08 | | must include WP03 (written and adapted by Claude models) |
@@ -107,4 +107,8 @@ decide at the next Task B):
 - WP05: prompt §7.3 falls back to the reference plane when the height grid fails to load;
   `projection.md` §5.2 allows it only for manifests without a grid. The viewer follows the prompt
   and shows the approximate flag.
+- WP08-D-01 (minor, WP04): the renderer accepts a polygon ring of 3 positions (strict xfail in
+  `tests/integration/test_failures.py`).
+- WP08 O-1: `render.md` §3 ("a background pixel has no pick") and `projection.md` §5.2 (no pick =
+  the ray misses the height grid) differ on the margin strip around the drawn area.
 - WP04: depth value 0 is ambiguous (the pixel at `dMin` and undrawn pixels).

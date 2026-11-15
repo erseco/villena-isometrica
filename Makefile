@@ -20,6 +20,7 @@ lint: ## Lint available packages
 test: ## Test available packages
 	@if [ -d pipeline/tests ]; then PYTHONPATH=pipeline uv run --project pipeline --frozen pytest pipeline/tests; else echo 'skipped: pipeline/tests not present'; fi
 	@for dir in apps/viewer pipeline/rendering; do if [ -f $$dir/package.json ]; then (cd $$dir && bun run test) || exit $$?; else echo "skipped: $$dir not present"; fi; done
+	@if [ -d tests/integration ]; then uv run --project pipeline --frozen pytest tests/integration -q; else echo 'skipped: tests/integration not present'; fi
 e2e: ## Run viewer end-to-end tests
 	@if [ -f apps/viewer/package.json ]; then cd apps/viewer && bun run e2e; else echo 'skipped: apps/viewer not present'; fi
 build: ## Build the viewer
