@@ -110,7 +110,7 @@ Lockfile conflicts are resolved by regenerating, never by hand.
 ```sh
 make help                 # list targets
 make install              # uv sync (Python) + bun ci in each JS package that exists
-make check                # contracts + lint + tests + fixtures reproducible: must pass before a handoff
+make check                # contracts + lint + tests + fixtures match their generator: must pass before a handoff
 make validate-contracts   # schemas, fixtures, city configs
 make lint / make test / make e2e / make build
 make scene|render|tiles|validate-tiles CITY=villena     # pipeline stages into build/<city>/
@@ -122,8 +122,8 @@ uv run scripts/validate_contracts.py <file.json>        # validate one manifest
 Python: one project in `pipeline/` (Python 3.13, uv, wheels only, not installed as a package):
 run modules through the `make` targets or with `PYTHONPATH=pipeline uv run --project pipeline
 python -m <module>`. JS packages are standalone: `bun run lint|test|build` inside each
-(Playwright runs on Node). `make fixtures` regenerates the synthetic fixtures and must be a
-no-op for everyone but the architect.
+(Playwright runs on Node). `make fixtures` rewrites the synthetic fixtures and is the
+architect's command; `make fixtures-check` (part of `make check`) compares them by content.
 
 ## Coding standards
 
