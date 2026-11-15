@@ -808,21 +808,29 @@ change. R-09 changes the fixtures, so it must be part of a `make fixtures` run a
    there is no Linux machine in this session and no renderer yet.
 3. The DZI check is against the specification; no OpenSeadragon instance exists to confirm that
    the manifest-to-tile-source adapter behaves (WP05/WP08).
-4. `docs/PROJECT_STATE.md` still says "Contracts: PROPOSED v1" — correct, but it also still
-   says "Nothing is committed beyond the first two commits; nothing is pushed; no remote
-   exists", which was true when written and is no longer: the bootstrap is committed on `main`
-   and an `origin` remote exists (data for the integrator, not a contract change).
-5. The WP00 handoff and `PROJECT_STATE.md` were updated while this review was reading the tree;
-   the base commit is `ba8ba0c` and everything above refers to it.
+4. `docs/PROJECT_STATE.md` was rewritten twice while this review was reading the tree, so the
+   text quoted in an earlier draft no longer exists. At `ba8ba0c` it says "Contracts: PROPOSED
+   v1" (still true) and records that the bootstrap is committed, that `main` must be
+   fast-forwarded to `agent/wp00-bootstrap` (it is: `main` = `ba8ba0c`), that an `origin`
+   remote exists and that nothing was pushed (`main` is 2 commits ahead of `origin/main`).
+   The owner's correction commit `ba8ba0c` touched only `LICENSE`, `docs/LICENSING.md` and
+   `docs/PROJECT_STATE.md` — no contract, schema, fixture or city config changed after this
+   review started, so every number above applies to the current `main`.
+5. Two other worktrees now exist at `ba8ba0c` (`agent/wp01-data-research`,
+   `agent/wp03-gis-pipeline`; WP03 has uncommitted work under `pipeline/`). If G1 changes the
+   contracts per R-01…R-07, both must re-read them; that is the expected cost of the review
+   landing first, not a defect.
 
 ## Human approvals needed
 
 - None for the review itself. Approvals the owner may still want to give:
   - whether this review is accepted as the WP02 sign-off on `deepseek-flash`, or repeated on
     `deepseek-v4-pro`;
-  - the `docs/PROJECT_STATE.md` decisions list items 2–8 (licences, model access, IGN download,
-    viewer language, AOI option, worktree location, GitHub owner) are unrelated to this review
-    but block G1's "what changes for each WP" answer in part;
+  - the `docs/PROJECT_STATE.md` decisions list is unrelated to this review but partly blocks
+    G1: item 1 (merge the bootstrap) is done — `main` = `ba8ba0c`; item 2 is half decided
+    (code is MIT, © Ernesto Serrano; artwork, tiles and docs are still proposals); items 3–8
+    (model access, IGN download, viewer language, AOI option, worktree location, GitHub owner)
+    are open;
   - no spend, no push, no publish: none was attempted.
 
 ## Recommended next task
