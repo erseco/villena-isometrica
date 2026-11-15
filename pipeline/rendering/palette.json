@@ -1,0 +1,251 @@
+{
+ "colors": [
+  {
+   "hex": "#1e2a35",
+   "role": "background"
+  },
+  {
+   "hex": "#2a1f1d",
+   "role": "outline"
+  },
+  {
+   "hex": "#e0cda3",
+   "role": "ground-0"
+  },
+  {
+   "hex": "#cdb68a",
+   "role": "ground-1"
+  },
+  {
+   "hex": "#b59d73",
+   "role": "ground-2"
+  },
+  {
+   "hex": "#977f5c",
+   "role": "ground-3"
+  },
+  {
+   "hex": "#8d8a86",
+   "role": "asphalt-0"
+  },
+  {
+   "hex": "#7a7774",
+   "role": "asphalt-1"
+  },
+  {
+   "hex": "#66635f",
+   "role": "asphalt-2"
+  },
+  {
+   "hex": "#d8d0c0",
+   "role": "paving-0"
+  },
+  {
+   "hex": "#c4bba9",
+   "role": "paving-1"
+  },
+  {
+   "hex": "#aaa08d",
+   "role": "paving-2"
+  },
+  {
+   "hex": "#9bb35a",
+   "role": "grass-0"
+  },
+  {
+   "hex": "#84a04b",
+   "role": "grass-1"
+  },
+  {
+   "hex": "#6b873e",
+   "role": "grass-2"
+  },
+  {
+   "hex": "#a7a46a",
+   "role": "scrub-0"
+  },
+  {
+   "hex": "#8f8c56",
+   "role": "scrub-1"
+  },
+  {
+   "hex": "#747243",
+   "role": "scrub-2"
+  },
+  {
+   "hex": "#c9b26a",
+   "role": "farmland-0"
+  },
+  {
+   "hex": "#b39c58",
+   "role": "farmland-1"
+  },
+  {
+   "hex": "#967f45",
+   "role": "farmland-2"
+  },
+  {
+   "hex": "#c2b8a8",
+   "role": "rock-0"
+  },
+  {
+   "hex": "#a89d8c",
+   "role": "rock-1"
+  },
+  {
+   "hex": "#8a7f70",
+   "role": "rock-2"
+  },
+  {
+   "hex": "#6fa3b8",
+   "role": "water-0"
+  },
+  {
+   "hex": "#5a8ea3",
+   "role": "water-1"
+  },
+  {
+   "hex": "#46778b",
+   "role": "water-2"
+  },
+  {
+   "hex": "#c97a4f",
+   "role": "sports-0"
+  },
+  {
+   "hex": "#b0653f",
+   "role": "sports-1"
+  },
+  {
+   "hex": "#f4efe2",
+   "role": "limewash-0"
+  },
+  {
+   "hex": "#e3dac6",
+   "role": "limewash-1"
+  },
+  {
+   "hex": "#c9bea8",
+   "role": "limewash-2"
+  },
+  {
+   "hex": "#aaa08c",
+   "role": "limewash-3"
+  },
+  {
+   "hex": "#e4b86f",
+   "role": "ochre-0"
+  },
+  {
+   "hex": "#d0a05a",
+   "role": "ochre-1"
+  },
+  {
+   "hex": "#b38448",
+   "role": "ochre-2"
+  },
+  {
+   "hex": "#926937",
+   "role": "ochre-3"
+  },
+  {
+   "hex": "#e2d6bb",
+   "role": "stone-0"
+  },
+  {
+   "hex": "#cdbf9f",
+   "role": "stone-1"
+  },
+  {
+   "hex": "#b1a282",
+   "role": "stone-2"
+  },
+  {
+   "hex": "#8f8165",
+   "role": "stone-3"
+  },
+  {
+   "hex": "#c3c4c0",
+   "role": "concrete-0"
+  },
+  {
+   "hex": "#a9aaa6",
+   "role": "concrete-1"
+  },
+  {
+   "hex": "#8d8e8a",
+   "role": "concrete-2"
+  },
+  {
+   "hex": "#d4744a",
+   "role": "terracotta-0"
+  },
+  {
+   "hex": "#bd613c",
+   "role": "terracotta-1"
+  },
+  {
+   "hex": "#a04f31",
+   "role": "terracotta-2"
+  },
+  {
+   "hex": "#7f3e27",
+   "role": "terracotta-3"
+  },
+  {
+   "hex": "#bfb6a6",
+   "role": "flatroof-0"
+  },
+  {
+   "hex": "#a9a090",
+   "role": "flatroof-1"
+  },
+  {
+   "hex": "#8f8676",
+   "role": "flatroof-2"
+  },
+  {
+   "hex": "#3a4150",
+   "role": "window-0"
+  },
+  {
+   "hex": "#2e3440",
+   "role": "window-1"
+  },
+  {
+   "hex": "#6b4a32",
+   "role": "door"
+  },
+  {
+   "hex": "#8a9a4a",
+   "role": "olive-0"
+  },
+  {
+   "hex": "#6f7f3a",
+   "role": "olive-1"
+  },
+  {
+   "hex": "#56652d",
+   "role": "olive-2"
+  },
+  {
+   "hex": "#4f7a43",
+   "role": "pine-0"
+  },
+  {
+   "hex": "#3d6335",
+   "role": "pine-1"
+  },
+  {
+   "hex": "#2d4c28",
+   "role": "pine-2"
+  },
+  {
+   "hex": "#6e5440",
+   "role": "trunk"
+  }
+ ],
+ "name": "villena-mediterranean",
+ "schemaVersion": "1.0",
+ "version": "1"
+}
