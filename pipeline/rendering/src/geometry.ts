@@ -1,7 +1,7 @@
 // Scene -> render primitives (terrain cells, wall quads, roof polygons, tree spheres) and the
 // top-down ground-class grid that drapes roads and landcover on the terrain.
 import { cosDeg, forward, type Projection, sinDeg } from './projection.ts';
-import { type Part, type Ring, type Scene, terrainAt } from './scene.ts';
+import { type Detail, type Part, type Ring, type Scene, terrainAt } from './scene.ts';
 
 /** Sub-pixel grid of projected vertices: 1/256 px. */
 export const SUB = 256;
@@ -20,12 +20,29 @@ export enum Kind {
   Roof = 2,
   Crown = 3,
   Trunk = 4,
+  /** Detail body: sides of a solid and the vertical faces of its merlons. */
+  Detail = 5,
+  /** Detail top: the flat cap of a cylinder or frustum and its merlon tops. */
+  DetailTop = 6,
 }
 
 export enum RoofTex {
   Tile = 0,
   Flat = 1,
   Stone = 2,
+  /** Tops of the merlons of a `parapet: "battlement"` part: plain wall material. */
+  Merlon = 3,
+}
+
+/** Where a detail surface sits on its solid, for shading and texture in stage 2. */
+export interface DetailFace {
+  /** Facet k of n around the axis; a pixel's arc fraction is (k + t) / n. */
+  k: number;
+  n: number;
+  /** Half chord of a facet divided by the profile radius at the same height. */
+  hc: number;
+  /** Shade by the analytic surface normal (round solids) instead of the facet band. */
+  round: boolean;
 }
 
 export interface Surface {
@@ -41,6 +58,8 @@ export interface Surface {
   len: number;
   edge: number;
   tex: RoofTex;
+  /** Detail surfaces only. */
+  face?: DetailFace;
 }
 
 /** A planar polygon in image space: depth d = (c - a*nr + b*np) / nw, a = (X-tx)/s, b = (Y-ty)/s. */
@@ -97,6 +116,50 @@ export interface Geometry {
 }
 
 const ROOF_ALLOWANCE = 6;
+/** Battlement: merlon width, height, nominal gap and depth from the wall face, m. */
+export const MERLON_W = 0.7;
+export const MERLON_H = 0.9;
+const MERLON_GAP = 0.7;
+const MERLON_T = 0.5;
+
+/**
+ * Merlon spans [s0, s1] along a wall edge of length len, in metres from its start vertex: the
+ * edge starts and ends with a merlon and the gaps are as close to 0.7 m as a whole count allows.
+ * Depends only on the edge, so it is the same in every chunk and every run.
+ */
+export function merlonSpans(len: number): [number, number][] {
+  if (len < MERLON_W / 2) return [];
+  const m = Math.max(1, Math.round((len + MERLON_GAP) / (MERLON_W + MERLON_GAP)));
+  if (m === 1) {
+    const w = Math.min(MERLON_W, len);
+    return [[(len - w) / 2, (len + w) / 2]];
+  }
+  const step = (len - MERLON_W) / (m - 1);
+  return Array.from({ length: m }, (_, i) => [i * step, i * step + MERLON_W] as [number, number]);
+}
+
+/** Facets around the axis for a round solid of radius rPx pixels: about 3 px per facet. */
+export function segmentsFor(rPx: number): number {
+  return Math.max(8, Math.min(128, 4 * Math.ceil(rPx / 2)));
+}
+
+type V3 = [number, number, number];
+
+/** Unit normal of a planar 3-D polygon by Newell's method (counter-clockwise seen from its front). */
+function newell(pts: V3[]): V3 {
+  let nx = 0;
+  let ny = 0;
+  let nz = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const [x0, y0, z0] = pts[i];
+    const [x1, y1, z1] = pts[(i + 1) % pts.length];
+    nx += (y0 - y1) * (z0 + z1);
+    ny += (z0 - z1) * (x0 + x1);
+    nz += (x0 - x1) * (y0 + y1);
+  }
+  const l = Math.sqrt(nx * nx + ny * ny + nz * nz);
+  return [nx / l, ny / l, nz / l];
+}
 const PITCH = 1 / Math.sqrt(3); // tan 30 deg
 
 function signedArea(r: Ring): number {
@@ -329,6 +392,37 @@ export function buildGeometry(scene: Scene, pr: Projection): Geometry {
     });
   };
 
+  /**
+   * Vertical prism over a CCW footprint from z0 to z1: side faces facing the camera, then the
+   * top. `side` returns the surface id of the face on footprint edge i.
+   */
+  const addPrism = (
+    foot: [number, number][],
+    z0: number,
+    z1: number,
+    side: (i: number, nx: number, ny: number, ux: number, uy: number, len: number) => number,
+    top: number,
+  ) => {
+    for (let i = 0; i < foot.length; i++) {
+      const a = foot[i];
+      const b = foot[(i + 1) % foot.length];
+      const dx = b[0] - a[0];
+      const dy = b[1] - a[1];
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const nx = dy / len;
+      const ny = -dx / len;
+      if (nx * pr.w[0] + ny * pr.w[1] >= 0) continue;
+      const quad: V3[] = [
+        [a[0], a[1], z0],
+        [b[0], b[1], z0],
+        [b[0], b[1], z1],
+        [a[0], a[1], z1],
+      ];
+      addPoly([quad], [nx, ny, 0], side(i, nx, ny, dx / len, dy / len, len));
+    }
+    addPoly([foot.map(([x, y]) => [x, y, z1] as V3)], [0, 0, 1], top);
+  };
+
   scene.parts.forEach((part, pi) => {
     const rings = partRings(part);
     if (rings.length === 0) return;
@@ -371,8 +465,57 @@ export function buildGeometry(scene: Scene, pr: Projection): Geometry {
           surf,
         );
       }
-    // Roof.
     const ref = longestEdge(rings[0]);
+    // Battlement: a box per merlon on the inner side of every wall edge (holes included).
+    if (part.parapet) {
+      const top = addSurface({
+        kind: Kind.Roof,
+        owner: pi,
+        band: band(0, 0, 1),
+        ...ref,
+        len: 0,
+        edge: 0,
+        tex: RoofTex.Merlon,
+      });
+      let e = 0;
+      for (const ring of rings)
+        for (let i = 0; i < ring.length; i++, e++) {
+          const a = ring[i];
+          const b = ring[(i + 1) % ring.length];
+          const dx = b[0] - a[0];
+          const dy = b[1] - a[1];
+          const len = Math.sqrt(dx * dx + dy * dy);
+          const [ux, uy] = [dx / len, dy / len];
+          // Inward is the left of the edge (exterior CCW, holes CW).
+          const [ix, iy] = [-uy * MERLON_T, ux * MERLON_T];
+          const edgeNo = e;
+          for (const [s0, s1] of merlonSpans(len)) {
+            const p0: [number, number] = [a[0] + ux * s0, a[1] + uy * s0];
+            const p1: [number, number] = [a[0] + ux * s1, a[1] + uy * s1];
+            const foot: [number, number][] = [p0, p1, [p1[0] + ix, p1[1] + iy], [p0[0] + ix, p0[1] + iy]];
+            addPrism(
+              foot,
+              z1,
+              z1 + MERLON_H,
+              (_i, nx, ny, fx, fy, flen) =>
+                addSurface({
+                  kind: Kind.Wall,
+                  owner: pi,
+                  band: band(nx, ny, 0),
+                  ax: a[0],
+                  ay: a[1],
+                  ux: fx,
+                  uy: fy,
+                  len: flen,
+                  edge: edgeNo,
+                  tex: RoofTex.Flat,
+                }),
+              top,
+            );
+          }
+        }
+    }
+    // Roof.
     const flatTex =
       part.use === 'fortification'
         ? RoofTex.Stone
@@ -471,7 +614,104 @@ export function buildGeometry(scene: Scene, pr: Projection): Geometry {
     });
   });
 
+  for (let di = 0; di < scene.details.length; di++) addDetail(scene.details[di], di);
+
   return { cells: Int32Array.from(cellList), tX, tY, tBand, polys, trees, surfaces, surfBase };
+
+  /** A detail solid as planar facets around its axis (rings from the base up), plus merlons. */
+  function addDetail(det: Detail, di: number): void {
+    const { x: cx, y: cy, baseZ: z0, heightM: H, radiusM: R } = det;
+    const square = det.kind === 'cone' && det.sides === 4;
+    const n = square ? 4 : segmentsFor(R * pr.s);
+    // Math angle (CCW from east) of vertex k; a square's corners sit 45 deg off a face normal.
+    const ang = (k: number) => (square ? 90 - det.rotationDeg + 45 + 90 * k : (360 * k) / n);
+    const scale = square ? Math.SQRT2 : 1;
+    const cosA = Array.from({ length: n + 1 }, (_, k) => cosDeg(ang(k % n)));
+    const sinA = Array.from({ length: n + 1 }, (_, k) => sinDeg(ang(k % n)));
+    const profile: [number, number][] = [];
+    if (det.kind === 'dome') {
+      const m = Math.max(2, Math.ceil(n / 4));
+      for (let j = 0; j <= m; j++) profile.push([R * cosDeg((90 * j) / m), H * sinDeg((90 * j) / m)]);
+    } else profile.push([R, 0], [det.kind === 'cone' ? det.topRadiusM : R, H]);
+    const ringPts = profile.map(([r, z]) =>
+      cosA.map((c, k) => [cx + r * scale * c, cy + r * scale * sinA[k], z0 + z] as V3),
+    );
+    const face = (k: number, round: boolean): DetailFace => ({
+      k,
+      n,
+      hc: square ? 1 : sinDeg(180 / n),
+      round,
+    });
+    const surfOf = (kind: Kind, nrm: V3, k: number, f: DetailFace | undefined, a: V3, b: V3) => {
+      const dx = b[0] - a[0];
+      const dy = b[1] - a[1];
+      const l = Math.sqrt(dx * dx + dy * dy) || 1;
+      return addSurface({
+        kind,
+        owner: di,
+        band: band(...nrm),
+        ax: cx,
+        ay: cy,
+        ux: dx / l,
+        uy: dy / l,
+        len: 0,
+        edge: k,
+        tex: RoofTex.Flat,
+        ...(f ? { face: f } : {}),
+      });
+    };
+    for (let j = 0; j + 1 < ringPts.length; j++) {
+      const lo = ringPts[j];
+      const hi = ringPts[j + 1];
+      const apex = profile[j + 1][0] === 0;
+      for (let k = 0; k < n; k++) {
+        const pts: V3[] = apex ? [lo[k], lo[k + 1], hi[k]] : [lo[k], lo[k + 1], hi[k + 1], hi[k]];
+        const nrm = newell(pts);
+        if (nrm[0] * pr.w[0] + nrm[1] * pr.w[1] + nrm[2] * pr.w[2] >= 0) continue;
+        addPoly([pts], nrm, surfOf(Kind.Detail, nrm, k, face(k, !square), lo[k], lo[k + 1]));
+      }
+    }
+    const topR = profile[profile.length - 1][0];
+    if (topR > 0) {
+      const top = ringPts[ringPts.length - 1].slice(0, n);
+      addPoly([top], [0, 0, 1], surfOf(Kind.DetailTop, [0, 0, 1], 0, undefined, top[0], top[1]));
+    }
+    if (!det.parapet) return;
+    // Merlons around the rim of a cylinder: about 0.7 m wide with 0.7 m gaps, MERLON_T deep.
+    const m = Math.max(6, Math.round((2 * Math.PI * R) / (MERLON_W + MERLON_GAP)));
+    const wDeg = Math.min((360 * MERLON_W) / (2 * Math.PI * R), 180 / m + 90 / m);
+    const rIn = R - Math.min(MERLON_T, R / 2);
+    const topSurf = surfOf(Kind.DetailTop, [0, 0, 1], 0, undefined, [0, 0, 0], [1, 0, 0]);
+    for (let k = 0; k < m; k++) {
+      const a0 = (360 * k) / m;
+      const a1 = a0 + wDeg;
+      const [c0, s0, c1, s1] = [cosDeg(a0), sinDeg(a0), cosDeg(a1), sinDeg(a1)];
+      const foot: [number, number][] = [
+        [cx + R * c0, cy + R * s0],
+        [cx + R * c1, cy + R * s1],
+        [cx + rIn * c1, cy + rIn * s1],
+        [cx + rIn * c0, cy + rIn * s0],
+      ];
+      addPrism(
+        foot,
+        z0 + H,
+        z0 + H + MERLON_H,
+        (i, nx, ny) => {
+          const a: V3 = [...foot[i], 0];
+          const b: V3 = [...foot[(i + 1) % 4], 0];
+          return surfOf(
+            Kind.Detail,
+            [nx, ny, 0],
+            k,
+            i === 0 ? { k, n: m, hc: sinDeg(wDeg / 2), round: true } : undefined,
+            a,
+            b,
+          );
+        },
+        topSurf,
+      );
+    }
+  }
 }
 
 /** Ground material codes of the ground grid. */

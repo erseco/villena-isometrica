@@ -48,7 +48,7 @@ Everything outside the render prism (AOI × `[zMin, zMax]`) is clipped per pixel
 
 ## Style
 
-- **Palette**: `palette.json`, 61 colours of my own choosing (≤ 64): limewash and ochre walls,
+- **Palette**: `palette.json`, 64 colours (61 + 3 slate for landmark details) of my own choosing (≤ 64): limewash and ochre walls,
   pale stone for fortifications and landmarks, terracotta and grey-beige flat roofs, dusty
   ground, asphalt, stone paving, olive and pine greens, water. Every drawn pixel is one of
   them; undrawn pixels have alpha 0. `background` in `render.json` is `#1e2a35`, also in the
@@ -80,9 +80,54 @@ Everything outside the render prism (AOI × `[zMin, zMax]`) is clipped per pixel
 
 The `class` layer uses 1 ground (default ground, paved, bare rock, sports, cemetery),
 2 road, 3 wall, 4 roof, 5 vegetation (trees, park, scrub, woodland, farmland), 6 water.
-Class 7 (landmark-detail) is not emitted: landmarks have no extra geometry. `class.png` is an
-8-bit palette PNG (the samples are the class codes; its PLTE is only for viewing).
-`buildingId.json` is `[null, <part ids…>]`: building parts in file order, then structures.
+7 landmark-detail (pixels of the curated solids below). `class.png` is an 8-bit palette PNG (the
+samples are the class codes; its PLTE is only for viewing). `buildingId.json` is
+`[null, <part ids…>, <detail ids…>]`: building parts in file order, then structures, then details.
+
+## Landmark details (scene contract v1.1, ADR 0008)
+
+![Castle tower, church spire, dome on drum, turret and frustum at 8 px/m, 2×](docs/landmark-details-2x.png)
+
+`scene.json` with `schemaVersion` 1.x is accepted. The optional `details` layer is checked like
+the others (file present, sha256) plus its feature `count`, and every property strictly: unknown
+keys, a bad `kind`/`material`/`sides`, a non-positive `heightM`/`radiusM`, a negative
+`topRadiusM`, `topRadiusM`/`sides` on anything but a cone, `parapet` on anything but a cylinder,
+`shapeSource` other than `reference` or a duplicate id fail with `details.geojson: detail <id>: …`.
+Part properties `parapet` and `material` are validated the same way. A scene without these renders
+exactly as before (the original golden hashes and the Villena scene were checked unchanged).
+
+- **Geometry** (`addDetail` in `src/geometry.ts`): each detail is tessellated into planar facets
+  around its axis and rasterised like walls and roofs, depth-tested against everything else
+  (drawn after the parts, before the trees). Facet count is fixed by the radius in pixels: about
+  3 px per facet, `max(8, min(128, 4·ceil(r_px / 2)))`. Cylinder: side quads and a flat top cap.
+  Cone: quads from the base ring to the `topRadiusM` ring (top cap when > 0) or triangles to the
+  apex; `sides: 4` is a square pyramid/frustum whose face normal points at `rotationDeg`. Dome:
+  half ellipsoid in `ceil(n / 4)` latitude rings ending at the pole. Vertices use the package's
+  own `sinDeg`/`cosDeg`. Back faces are culled.
+- **Battlements**: on a part with `parapet: "battlement"`, every wall edge (holes too) carries
+  merlon boxes 0.7 m wide, 0.9 m high, 0.5 m deep on its inner side, starting and ending at the
+  edge's vertices with gaps as close to 0.7 m as a whole count allows (`merlonSpans`); edges under
+  0.35 m get none. Merlon fronts are wall surfaces of the part (same masonry, no outline against
+  the wall below), merlon tops roof surfaces. On a cylinder the rim carries
+  `max(6, round(2πR / 1.4))` merlons of the same size.
+- **Style**: materials map to palette ramps — stone `stone`, brick `terracotta`, plaster
+  `limewash`, tile `terracotta`, slate `slate` (3 colours added, palette version 2, 64 colours),
+  metal `concrete`. A part's `material` replaces its wall ramp and keeps its window layout. Round
+  sides are shaded per pixel by the analytic normal of the solid (cylinder radial, cone with its
+  slope, dome ellipsoid gradient) with the usual sun and four bands, plus a 4×4 ordered dither of
+  ±0.03 on `n·L` so the band steps read as a curved surface; square pyramids, caps and merlons use
+  flat facet bands. Textures in metres around the solid and above its base: stone courses
+  0.6 m × 1.2 m staggered, brick 0.5 × 1 m, slate 0.6 × 1 m, tile courses 0.45 m as on roofs,
+  metal vertical panel seams every 1.2 m, plaster plain. A detail's sides and its top are two
+  outline keys, so silhouettes and the rim get the usual 1 px outline.
+- **Tests** (`test/details.test.ts`): a synthetic scene (`test/detail-scene.ts`: the fixture plus
+  a battlemented keep, a battlemented stone cylinder, a slate square spire on a stone church
+  tower, a metal dome on a plaster drum, a brick turret with a tile cone and a stone frustum)
+  with committed hashes in `test/golden-details.json` (`UPDATE_GOLDEN=1 bun test` rewrites
+  them), chunk-size independence, class 7 ⇔ detail id in the index, dome and spire silhouettes
+  against extents computed in the test from projection.md with the platform trigonometry, merlons
+  above the keep, and the validation failures. `bun test/contact-sheet.ts` regenerates the image
+  above.
 
 ## Determinism
 
@@ -95,7 +140,7 @@ Class 7 (landmark-detail) is not emitted: landmarks have no extra geometry. `cla
   absolute image coordinates, never incrementally, so chunk size cannot matter; the one-pixel
   G-buffer margin gives outlines their neighbours across chunk edges.
 - Ties in depth go to the primitive drawn first; the order is fixed (terrain cells, then parts
-  in scene order, then trees). All variation comes from FNV-1a/xorshift hashes of ids and
+  in scene order, then details, then trees). All variation comes from FNV-1a/xorshift hashes of ids and
   integer cell coordinates.
 - PNG: own encoder (`src/png.ts`), one IDAT, filter Sub on every row, `node:zlib` level 9 as
   bundled with Bun, no ancillary chunks. `renderer.version` records the zlib and Bun versions.
@@ -116,7 +161,8 @@ docker run --rm --platform linux/amd64 -v "$PWD":/w -v /w/pipeline/rendering/nod
 
 On 2026-11-15 this printed the golden hashes on `x86_64` (macOS arm64 host: identical), and the
 Villena fallback scene gave identical `pixelSha256` on both platforms and for chunk sizes 2048
-and 1500.
+and 1500. After the v1.1 details the same command passed all 24 tests in the container,
+including `test/golden-details.json`.
 
 ## Performance (Apple M5, 24 GB, Bun 1.4.4)
 
@@ -126,8 +172,12 @@ and 1500.
 | Villena fallback scene (7 721 parts, 1 m terrain, 505 roads) | 11 314 × 6 836 | 10.2 s | 3.0 GB |
 | same, `--depth --chunk 1500` | 11 314 × 6 836 | 14.9 s | 4.2 GB |
 | same, `linux/amd64` container under emulation | 11 314 × 6 836 | 19.7 s | 2.6 GB |
+| Villena full scene (8 108 parts, 4 789 trees) + 60 test details | 11 314 × 6 981 | 11.8 s | 2.9 GB |
+| same, `--depth` | 11 314 × 6 981 | 17.2 s | 4.6 GB |
 
-The budget is 10 minutes and 8 GB. Memory is dominated by the full-image output buffers
+The details add about 0.6 s on that scene (11.2 s without them). The budget is 10 minutes and
+8 GB; at the v1.1 AOI (≈ 15 557 × 9 006 px, 1.8× the pixels) expect ≈ 5.5 GB without `--depth`
+and ≈ 8 GB with it, so render the full city without `--depth`. Memory is dominated by the full-image output buffers
 (≈ 40 bytes per pixel with `--depth`); time grows roughly linearly with pixels and terrain cells.
 
 ## Dependencies (pinned in `bun.lock`)

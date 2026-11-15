@@ -1,10 +1,10 @@
 // Stage 2: styling. A pure function of the G-buffers, the scene attributes and the palette.
 // Every texture is anchored to world coordinates or absolute image coordinates, so chunking
 // cannot change it; variation comes from hashes of feature ids, never from iteration order.
-import { band, type Geometry, GRID_RES, GROUND, type GroundGrid, Kind, RoofTex } from './geometry.ts';
+import { band, type Geometry, GRID_RES, GROUND, type GroundGrid, Kind, RoofTex, SUN } from './geometry.ts';
 import type { Projection } from './projection.ts';
 import type { GBuffer } from './raster.ts';
-import type { Part, Scene } from './scene.ts';
+import type { Detail, DetailMaterial, Part, Scene } from './scene.ts';
 
 export interface PaletteDoc {
   colors: { hex: string; role: string }[];
@@ -20,7 +20,19 @@ export interface Outputs {
   depth: Float64Array | null;
 }
 
-export const CLASS = { background: 0, ground: 1, road: 2, wall: 3, roof: 4, vegetation: 5, water: 6 } as const;
+export const CLASS = {
+  background: 0,
+  ground: 1,
+  road: 2,
+  wall: 3,
+  roof: 4,
+  vegetation: 5,
+  water: 6,
+  landmarkDetail: 7,
+} as const;
+
+/** Ordered dither amplitude on the light term of round details (softens the band steps). */
+const ROUND_DITHER = 0.06;
 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
@@ -91,6 +103,15 @@ export function makeStyler(
     olive: mat('olive'),
     pine: mat('pine'),
     trunk: mat('trunk'),
+    slate: mat('slate'),
+  };
+  const MATERIAL: Record<DetailMaterial, Shades> = {
+    stone: M.stone,
+    brick: M.terracotta,
+    plaster: M.limewash,
+    tile: M.terracotta,
+    slate: M.slate,
+    metal: M.concrete,
   };
   const pick = (m: Shades, b: number) => m[b < 0 ? 0 : b >= m.length ? m.length - 1 : b];
 
@@ -98,6 +119,12 @@ export function makeStyler(
     const h = hashStr(part.buildingId);
     const floors = part.floors ?? Math.max(1, Math.round(part.heightM / 3));
     const base = { floors, floorH: part.heightM / floors, hash: hashStr(part.id), plinth: false };
+    const st = partStyle(part, h, base);
+    // Curated material (scene v1.1) replaces the wall colours; the opening layout stays.
+    return part.material === null ? st : { ...st, wall: MATERIAL[part.material], plinth: false };
+  });
+
+  function partStyle(part: Part, h: number, base: Omit<PartStyle, 'wall' | 'family'>): PartStyle {
     if (part.use === 'fortification') return { ...base, wall: M.stone, family: 'fort' };
     const landmark = part.landmark !== null;
     switch (part.use) {
@@ -121,14 +148,18 @@ export function makeStyler(
         };
       }
     }
-  });
+  }
 
+  // Outline key: one per part's walls, its roof, a tree's crown, its trunk, a detail's body and its top.
   const surfKey = new Int32Array(geo.surfaces.length);
+  const detailKey0 = 2 + scene.parts.length * 2 + scene.trees.length * 2;
   geo.surfaces.forEach((s, i) => {
     surfKey[i] =
       s.kind === Kind.Wall || s.kind === Kind.Roof
         ? 2 + s.owner * 2 + (s.kind === Kind.Roof ? 1 : 0)
-        : 2 + scene.parts.length * 2 + s.owner * 2 + (s.kind === Kind.Trunk ? 1 : 0);
+        : s.kind === Kind.Detail || s.kind === Kind.DetailTop
+          ? detailKey0 + s.owner * 2 + (s.kind === Kind.DetailTop ? 1 : 0)
+          : 2 + scene.parts.length * 2 + s.owner * 2 + (s.kind === Kind.Trunk ? 1 : 0);
   });
   const treeCentre = geo.trees.map((t) => [t.wx, t.wy, t.wz]);
   const treeHash = scene.trees.map((t) => hashStr(t.id));
@@ -258,6 +289,7 @@ export function makeStyler(
     const fy = y - Math.floor(y);
     const joint = fx < 0.07 || fy < 0.07;
     if (s.tex === RoofTex.Stone) return pick(M.stone, joint ? b + 1 : b);
+    if (s.tex === RoofTex.Merlon) return pick(styles[s.owner].wall, b);
     if (distToBoundary(scene.parts[s.owner], x, y) < 0.3) return pick(M.flatroof, b);
     return pick(M.flatroof, joint ? b + 2 : b + 1);
   }
@@ -271,6 +303,78 @@ export function makeStyler(
     const leaf = mix(mix(mix(treeHash[s.owner], Math.floor(x / 0.6)), Math.floor(y / 0.6)), Math.floor(z / 0.6)) & 15;
     const m = treeHash[s.owner] % 5 < 3 ? M.olive : M.pine;
     return pick(m, Math.min(bb, 2) + (leaf >= 12 ? 1 : 0));
+  }
+
+  /** Profile radius of a detail at height zr above its base (m). */
+  function radiusAt(det: Detail, zr: number): number {
+    if (det.kind === 'cylinder') return det.radiusM;
+    if (det.kind === 'cone')
+      return det.radiusM + ((det.topRadiusM - det.radiusM) * Math.min(Math.max(zr, 0), det.heightM)) / det.heightM;
+    const q = zr / det.heightM;
+    return det.radiusM * Math.sqrt(Math.max(1 - q * q, 0));
+  }
+
+  function detailColour(si: number, x: number, y: number, z: number, X: number, Y: number): number {
+    const s = geo.surfaces[si];
+    const det = scene.details[s.owner];
+    const m = MATERIAL[det.material];
+    const zr = z - det.baseZ;
+    const dx = x - det.x;
+    const dy = y - det.y;
+    let b = s.band;
+    if (s.kind === Kind.DetailTop) {
+      if (det.material !== 'stone' && det.material !== 'brick') return pick(m, b);
+      const fx = x - Math.floor(x);
+      const fy = y - Math.floor(y);
+      return pick(m, fx < 0.07 || fy < 0.07 ? b + 1 : b);
+    }
+    const f = s.face;
+    if (!f) return pick(m, b);
+    if (f.round) {
+      // Analytic normal of the solid at this point, then the shade band with an ordered dither.
+      let nx = dx;
+      let ny = dy;
+      let nz = 0;
+      if (det.kind === 'cone') nz = (Math.sqrt(dx * dx + dy * dy) * (det.radiusM - det.topRadiusM)) / det.heightM;
+      else if (det.kind === 'dome') {
+        const r2 = det.radiusM * det.radiusM;
+        const h2 = det.heightM * det.heightM;
+        nx = dx / r2;
+        ny = dy / r2;
+        nz = Math.max(zr, 0) / h2;
+      }
+      const nl = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
+      const l =
+        (nx * SUN[0] + ny * SUN[1] + nz * SUN[2]) / nl + (BAYER[(X & 3) + 4 * (Y & 3)] / 16 - 0.47) * ROUND_DITHER;
+      b = l >= 0.85 ? 0 : l >= 0.6 ? 1 : l >= 0.35 ? 2 : 3;
+    }
+    // Texture: u = metres around the solid at this height, zr = metres above its base.
+    const rz = radiusAt(det, zr);
+    const t = rz > 0 ? Math.min(Math.max((dx * s.ux + dy * s.uy) / (2 * f.hc * rz) + 0.5, 0), 0.999) : 0.5;
+    const u = ((f.k + t) / f.n) * rz * (det.sides === 4 ? 8 : 2 * Math.PI);
+    const pxH = 1 / S;
+    const course = (h: number, w: number) => {
+      const row = Math.floor(zr / h);
+      const off = row % 2 === 0 ? 0 : w / 2;
+      return zr - row * h < pxV || u + off - Math.floor((u + off) / w) * w < pxH;
+    };
+    switch (det.material) {
+      case 'stone':
+        return pick(m, course(0.6, 1.2) ? b + 1 : b);
+      case 'brick':
+        return pick(m, course(0.5, 1) ? b + 1 : b);
+      case 'slate':
+        return pick(m, course(0.6, 1) ? b + 1 : b);
+      case 'tile': {
+        const row = Math.floor(zr / 0.45);
+        if (zr - row * 0.45 < 0.13) return pick(m, b + 1);
+        return pick(m, (mix(mix(5, row), Math.floor(u / 0.3)) & 15) === 0 ? b - 1 : b);
+      }
+      case 'metal':
+        return pick(m, u - Math.floor(u / 1.2) * 1.2 < pxH ? b + 1 : b);
+      default:
+        return pick(m, b);
+    }
   }
 
   return {
@@ -312,6 +416,10 @@ export function makeStyler(
               colour = roofColour(si, x, y);
               cls = CLASS.roof;
               bid = geo.surfaces[si].owner + 1;
+            } else if (kind === Kind.Detail || kind === Kind.DetailTop) {
+              colour = detailColour(si, x, y, z, X, Y);
+              cls = CLASS.landmarkDetail;
+              bid = scene.parts.length + geo.surfaces[si].owner + 1;
             } else {
               colour = treeColour(si, x, y, z);
               cls = CLASS.vegetation;
