@@ -40,11 +40,11 @@ Scriptable 5 m resolution bare-earth elevation model requested via WCS for the A
 mkdir -p data/raw/ign-mdt05
 
 curl -sS -A "Mozilla/5.0 (compatible; geodata-research/1.0)" \
-  -o data/raw/ign-mdt05/mdt05-aoi-margin.asc \
-  "https://servicios.idee.es/wcs-inspire/mdt?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID=Elevacion25830_5&SUBSET=x(685380,686620)&SUBSET=y(4277380,4278620)&FORMAT=application/asc"
+  -o data/raw/ign-mdt05/mdt05-aoi-margin-v2.asc \
+  "https://servicios.idee.es/wcs-inspire/mdt?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID=Elevacion25830_5&SUBSET=x(685230,686620)&SUBSET=y(4277380,4279220)&FORMAT=application/asc"
 ```
-- **Expected size:** `493,615` bytes (~482 KB)
-- **Expected SHA-256:** `ae3fb9adfdebb9ecb332ec77598a887967cbe45f3e427d831d0a0ef8580136a4`
+- **Expected size:** `820,135` bytes (~801 KB)
+- **Expected SHA-256:** `f08987ac44367acf5546b196762996ac716f551a8aff61abf7e208099cda5663`
 
 ### 2.3 OpenStreetMap Extract (`osm`)
 Streets, railways, landcover, leisure, water, barriers, and POIs within the AOI + 120 m margin.
@@ -53,12 +53,12 @@ Streets, railways, landcover, leisure, water, barriers, and POIs within the AOI 
 mkdir -p data/raw/osm
 
 curl -sS -A "villena-isometrica/0.1" \
-  --data-urlencode 'data=[out:json][timeout:90][bbox:38.625327,-0.870437,38.636754,-0.855869];(node;way;relation;);out body;>;out skel qt;' \
+  --data-urlencode 'data=[out:json][timeout:120][bbox:38.625327,-0.872159,38.642189,-0.855708];(node;way;relation;);out body;>;out skel qt;' \
   https://overpass-api.de/api/interpreter \
-  -o data/raw/osm/osm-aoi-margin.json
+  -o data/raw/osm/osm-aoi-margin-v2.json
 ```
-- **Expected size:** ~11 MB (`11,046,725` bytes on snapshot 2026-11-15)
-- **Expected SHA-256:** `7e5a4e82561b24ad9693006585ea0568b0289a4e25ca90b9e9e4a8f1029e01a4` (snapshot pinned at retrieval)
+- **Expected size:** ~11.6 MB (`11,581,743` bytes on snapshot 2026-11-15)
+- **Expected SHA-256:** `61532bcea24cba860246050295c45a048ab192fe9568cfbb750e93421a60c50b` (snapshot pinned at retrieval)
 
 ---
 

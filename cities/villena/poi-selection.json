@@ -1,5 +1,14 @@
 [
   {
+    "id": "plaza-de-toros",
+    "name": "Plaza de Toros",
+    "altNames": ["Plaza de Toros de Villena", "La Plaza"],
+    "kind": "landmark",
+    "source": {"dataset": "osm", "ref": "way/205835401"},
+    "lat": 38.639558,
+    "lon": -0.868410
+  },
+  {
     "id": "castillo-atalaya",
     "name": "Castillo de la Atalaya",
     "altNames": [
