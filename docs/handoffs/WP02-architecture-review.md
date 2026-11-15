@@ -238,7 +238,9 @@ the right model. The numeric bisection is what closes that gap, and it agrees.
 ## Item 7 — camera heading for Villena and the occlusion estimate
 
 **Check.** `cities/villena/city.json`: heading 45°, pitch 30°, s = 8, AOI E 685500–686500 /
-N 4277500–4278500 (1 km). Castle at E 686188, N 4278098 (local 688, 598). Computed the hidden
+N 4277500–4278500 (1 km). Castle at E 686192.6, N 4278103.7 (local 692.6, 603.7; PROJ from its
+documented lon/lat — the rounded "about E 686188, N 4278098" in `DATA_SOURCES.md` moves the
+pixel by 30 px, so the numbers below use the PROJ value). Computed the hidden
 ground length behind an obstacle of height `h` (`h/tanφ`) for a range of `h`, located the
 castle in the image, and looked for a documented hill height.
 
@@ -247,10 +249,14 @@ note in R-16, data gap in "Known problems".**
 
 - Hidden length = `h / tan 30°` = `1.732·h`: 5 m → 8.7 m, 10 m → 17.3 m, 20 m → 34.6 m,
   30 m → 52.0 m, 50 m → 86.6 m, 80 m → 138.6 m. For a 100 m wide hill those are 0.09–1.39 ha.
-- The castle lands at pixel `(6166, 2436)` of `11314 × 6489` (54 % from the left, 38 % from the
-  top at `z = 30 m`), i.e. mid-upper-right, which is where a confident map wants its landmark.
-- The old town is south-west and *west* of the hill (Castillo E 686188/N 4278098; Plaza Mayor
-  ≈ E 686071/N 4277910, computed from the coordinates in `docs/DATA_SOURCES.md`). With a
+- The castle lands at pixel `(6160, 2407)` of `11314 × 6489` (54.4 % from the left, 37.1 % from
+  the top at `z = 30 m`), i.e. mid-upper-right, which is where a confident map wants its
+  landmark. (Script A's appendix C still prints the `DATA_SOURCES.md` rounded coordinate,
+  30 px lower.)
+- The old town is south-west and *west* of the hill (Castillo E 686192.6/N 4278103.7; Plaza
+  Mayor E 686079.6/N 4277913.0; Santa María E 686185.2/N 4277913.1 — all PROJ transforms of the
+  lon/lat in `docs/DATA_SOURCES.md`, so the block is 190 m south and 7–257 m west of the
+  castle). With a
   camera looking north-east the town is on the **near** side, so the hill's terrain shadow
   falls north-east, away from the town. ADR 0003's reasoning is right.
 - But `docs/DATA_SOURCES.md` states no hill height and no relief figure, so "the castle hill
