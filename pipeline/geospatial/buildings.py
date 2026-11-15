@@ -70,6 +70,7 @@ class Part:
     landmark: str | None = None
     ridge: float | None = None  # highest point of a measured pitched roof above base_h
     zoned: bool = False
+    footprint: object = None  # zones: the whole outline they were cut from (zoning leaves gaps)
     stats: dict = field(default_factory=dict)
 
     def properties(self) -> dict:
@@ -158,10 +159,17 @@ def classify_roof(slopes: np.ndarray) -> str:
 
 def set_roof_heights(part: Part, mds: np.ndarray) -> None:
     """Wall top (eaves for pitched roofs) and, for pitched roofs, the measured ridge."""
-    part.height = float(np.percentile(mds, 5 if part.roof == "pitched" else 80)) - part.base_h
     if part.roof == "pitched":
+        eaves = float(np.percentile(mds, 5)) - part.base_h
         ridge = float(np.percentile(mds, 95)) - part.base_h
-        part.ridge = ridge if ridge - part.height >= RIDGE_MIN_RISE else None
+        if eaves >= MIN_MEASURED and ridge - eaves <= ROOF_ALLOWANCE:
+            part.height, part.ridge = eaves, ridge if ridge - eaves >= RIDGE_MIN_RISE else None
+            return
+        # Not one simple pitched roof: the low samples are ground (footprint and surface model
+        # disagree at the edge) or a lower wing of a part with several levels. There is no
+        # credible eaves/ridge pair, so measure it like a roof of unknown shape.
+        part.roof = "unknown"
+    part.height, part.ridge = float(np.percentile(mds, 80)) - part.base_h, None
 
 
 def measure(part: Part, terrain_grid: Grid, terrain: np.ndarray, surface: Surface | None,
@@ -181,11 +189,11 @@ def measure(part: Part, terrain_grid: Grid, terrain: np.ndarray, surface: Surfac
         part.stats = {"samples": len(mds)}
         if len(mds) >= MIN_SAMPLES and len(ndsm) >= MIN_SAMPLES and np.percentile(ndsm, 80) >= MIN_MEASURED:
             part.roof = classify_roof(samples(surface.grid, surface.slope, part.geom.buffer(-SHRINK_SLOPE)))
-            part.roof_source = "none" if part.roof == "unknown" else "surface-model"
             set_roof_heights(part, mds)
+            part.roof_source = "none" if part.roof == "unknown" else "surface-model"
             part.height_source = "surface-model"
             part.stats["spread"] = float(np.percentile(ndsm, 90) - np.percentile(ndsm, 10))
-            if part.height > 0:
+            if round(part.height, 2) > 0:
                 return
     if part.floors is not None and part.floors >= 1:
         part.height, part.height_source = part.floors * METRES_PER_FLOOR + FLOOR_OFFSET, "floors"
@@ -220,14 +228,15 @@ def zone(part: Part, terrain_grid: Grid, terrain: np.ndarray, surface: Surface) 
         mds_z = samples(g, surface.mds, poly)
         if len(mds_z) < 4 or float(np.median(ndsm)) < ZONE_MIN_HEIGHT:
             continue
-        z = Part("", part.building_id, poly, None, part.use, landmark=part.landmark, zoned=True)
+        z = Part("", part.building_id, poly, None, part.use, landmark=part.landmark, zoned=True,
+                 footprint=part.geom)
         ground = samples(terrain_grid, terrain, poly)
         rep = poly.representative_point()
         z.base_h = float(ground.min()) if len(ground) else terrain_grid.bilinear(terrain, rep.x, rep.y)
         inner = poly.buffer(-SHRINK_SLOPE)
         z.roof = classify_roof(samples(g, surface.slope, inner)) if not inner.is_empty else "unknown"
-        z.roof_source = "none" if z.roof == "unknown" else "surface-model"
         set_roof_heights(z, mds_z)
+        z.roof_source = "none" if z.roof == "unknown" else "surface-model"
         z.height_source = "surface-model"
         if z.height > 0:
             zones.append(z)

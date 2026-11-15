@@ -49,10 +49,10 @@
         "derivatives": true,
         "notes": "CC BY 4.0 allows commercial and non-commercial reuse, transformation and redistribution with attribution."
       },
-      "sizeBytes": 64036454,
-      "sha256": null,
+      "sizeBytes": 64040192,
+      "sha256": "4f2548f57b1c406413a8ce9ee3c5c410ef31a89018e62cf523ad2c46def73576",
       "localPath": "data/raw/ign-mdt50cm/MDT50CM-ETRS89-H30-0845-8-2-COB3-V1.tif",
-      "retrievedAt": null
+      "retrievedAt": "2026-11-15"
     },
     {
       "id": "ign-mds50cm",
@@ -75,10 +75,10 @@
         "derivatives": true,
         "notes": "CC BY 4.0 allows commercial and non-commercial reuse, transformation and redistribution with attribution."
       },
-      "sizeBytes": 119524884,
-      "sha256": null,
+      "sizeBytes": 119526972,
+      "sha256": "a0230bd944b2b497832d67f6971bd1471b14ef4ae6d0679b76fa580fcd78f317",
       "localPath": "data/raw/ign-mds50cm/MDS50CM-ETRS89-H30-0845-8-2-COB3-V1.tif",
-      "retrievedAt": null
+      "retrievedAt": "2026-11-15"
     },
     {
       "id": "ign-mdt05",
