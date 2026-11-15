@@ -43,6 +43,8 @@ jobs:
             bunx playwright install --with-deps chromium
             bun run e2e
           fi
+      # the e2e fixture city must not be published
+      - run: rm -rf apps/viewer/public/tiles/planeville apps/viewer/dist
       - run: make fetch-tiles
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
       - run: make build size-check
