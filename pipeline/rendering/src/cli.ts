@@ -47,7 +47,7 @@ function main(argv: string[]): number {
     const peakMb = Math.round(process.resourceUsage().maxRSS / 1024);
     console.error(
       `rendered ${result.projection.width}x${result.projection.height} px, ${scene.parts.length} parts, ` +
-        `${scene.trees.length} trees -> ${values.out} in ${secs} s, peak RSS ${peakMb} MB`,
+        `${scene.trees.length} trees, ${scene.details.length} details -> ${values.out} in ${secs} s, peak RSS ${peakMb} MB`,
     );
     return 0;
   } catch (e) {

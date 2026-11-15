@@ -56,6 +56,8 @@ One feature per building *part* (a footprint region with a single height).
 | `roofSource` | `"surface-model"` \| `"tag"` \| `"none"` | |
 | `use` | `"residential"` \| `"religious"` \| `"civic"` \| `"industrial"` \| `"commercial"` \| `"agricultural"` \| `"fortification"` \| `"other"` | drives procedural facade style |
 | `landmark` | string \| null | POI id when this part belongs to a named landmark |
+| `parapet` | `"battlement"` (optional, v1.1) | curated: the wall top carries merlons. Only on parts of a landmark listed in the city's `landmark-details.json`. |
+| `material` | `"stone"` \| `"brick"` \| `"plaster"` (optional, v1.1) | curated wall material of a landmark part; overrides the style derived from `use` |
 
 ## roads (`roads.geojson`) — LineString
 
@@ -107,6 +109,43 @@ same rendering as `buildings`, in a separate file because the source and its lic
 - Heights follow the same rules and the same `heightSource` labels as buildings. Without a
   surface model the height is the labelled default: an OSM outline says where a wall is, not
   how tall it is.
+
+## details (`details.geojson`, optional, v1.1) — Point
+
+Curated solids that give the few landmarks everybody looks for their recognisable silhouette
+where footprints and a height per part cannot: a spire, a round tower, a dome
+(`docs/decisions/0008-landmark-details-and-aoi.md`). They are **not measured geometry**: the
+shape comes from cited reference photographs, the position and dimensions from the surface model
+wherever it resolves them. They exist only for landmarks listed in
+`cities/<city>/landmark-details.json`, which carries the references.
+
+Every solid is a body of revolution (or a regular pyramid) on a vertical axis through the point,
+except `gable`, a rectangular hall with a two-pitch roof centred on the point.
+
+| Property | Type | Meaning |
+|---|---|---|
+| `id` | string | `<landmark>-<name>` |
+| `landmark` | string | POI id |
+| `kind` | `"cylinder"` \| `"cone"` \| `"dome"` \| `"gable"` | cylinder: constant radius. cone: radius `radiusM` at the base to `topRadiusM` at the top (a frustum when > 0). dome: half ellipsoid, radius `radiusM`, rise `heightM`. gable: a box `lengthM` × `widthM` with vertical walls up to `wallHeightM` and a two-pitch roof whose ridge runs along the length at `heightM`; the two end walls are vertical gables. |
+| `baseH` | number | height of the solid's base, m (absolute, same datum as the terrain) |
+| `heightM` | number > 0 | height of the solid above `baseH`, m |
+| `radiusM` | number > 0 (all kinds but gable) | base radius, m (for `sides` = 4: half the side of the square base) |
+| `lengthM`, `widthM` | number > 0 (gable only) | plan size, m; the ridge runs along the length |
+| `wallHeightM` | number > 0, < `heightM` (gable only) | eaves height above `baseH`, m |
+| `roofMaterial` | `"tile"` \| `"slate"` \| `"metal"` (gable only) | material of the two roof slopes; `material` is the walls |
+| `openings` | `"arcade"` (optional, cylinder only) | curated: the wall carries regularly spaced arched openings in two tiers (a bullring facade) |
+| `topRadiusM` | number ≥ 0 (optional, cone only; default 0) | top radius, m |
+| `sides` | 0 \| 4 (optional, cone only; default 0) | 0 = round, 4 = square pyramid |
+| `rotationDeg` | number (optional; default 0) | for `sides` = 4: bearing of one face normal; for a gable: bearing of the ridge. Degrees clockwise from north |
+| `material` | `"stone"` \| `"brick"` \| `"plaster"` \| `"tile"` \| `"slate"` \| `"metal"` | |
+| `parapet` | `"battlement"` (optional, cylinder only) | merlons on the top rim |
+| `shapeSource` | `"reference"` | always: the shape is curated from reference photographs |
+| `dimensionsSource` | `"surface-model"` \| `"estimated"` | whether position and size were measured on the surface model or estimated from the references |
+
+The renderer draws details as opaque solids with depth testing like any building, writes
+semantic class 7 (`landmark-detail`) for their pixels and lists each detail `id` in the
+`buildingId` index. A detail may overlap building parts; nothing is subtracted. `zRange` includes
+the details.
 
 ## pois (`pois.json`)
 

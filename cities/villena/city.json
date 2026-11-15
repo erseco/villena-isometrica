@@ -8,10 +8,10 @@
     "verticalDatum": "Alicante height (EPSG:5782): orthometric heights, geoid model EGM08-REDNAP"
   },
   "aoi": {
-    "bounds": [685500, 4277500, 686500, 4278500],
+    "bounds": [685350, 4277500, 686500, 4279100],
     "marginM": 120
   },
-  "origin": { "E0": 685500, "N0": 4277500, "H0": 500 },
+  "origin": { "E0": 685350, "N0": 4277500, "H0": 500 },
   "camera": { "headingDeg": 45, "pitchDeg": 30, "pixelsPerMetre": 8 },
   "tiles": { "tileSize": 512, "tileOverlap": 1, "format": "png" },
   "datasets": "datasets.json",

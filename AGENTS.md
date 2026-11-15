@@ -9,7 +9,7 @@ Keep this file short; details live in the linked documents.
 An interactive isometric pixel-art map of Villena (Alicante, Spain), pre-rendered offline from
 open geodata and served as static image tiles on GitHub Pages.
 
-**v0.1.0 goals:** ~1 km² around the historic centre and the Castillo de la Atalaya; real
+**v0.1.0 goals:** ~1.8 km² around the historic centre, the Castillo de la Atalaya and the Plaza de Toros; real
 building footprints, terrain, streets and landmarks; a procedural (non-AI) pixel-art render;
 a static viewer with pan/zoom/touch, search, shareable URLs, attribution. Scope: `docs/PROJECT.md`.
 
@@ -21,7 +21,8 @@ optional, separately approved track (WP10).
 
 1. **Never present invented or estimated geometry as fact.** Every estimated value carries its
    source (`heightSource`, `roofSource`, …). Do not add towers, roofs or details the data does
-   not contain. Do not invent coordinates, identifiers, URLs, licence terms or the GitHub owner.
+   not contain — the one exception is the curated, labelled landmark details of
+   `docs/decisions/0008-landmark-details-and-aoi.md`. Do not invent coordinates, identifiers, URLs, licence terms or the GitHub owner.
 2. **Data licensing.** Use only datasets listed in `cities/<city>/datasets.json`. No Google
    3D Tiles / Earth / Maps / Street View, anywhere, for anything persistent. Raw Catastro data
    is never redistributed. Nothing is copied from Isometric NYC or Tiny València (code is MIT
@@ -75,7 +76,8 @@ The browser gets only pre-rendered tiles, a manifest and a POI list. Full pictur
 - `docs/contracts/projection.md` — frames, camera, world→image matrix, tiles, picking, URL.
 - `docs/contracts/scene.md` — GIS → renderer. `docs/contracts/render.md` — renderer → export → viewer.
 - `packages/geo-contracts/schemas/*.schema.json` — machine-checkable form.
-- **Frozen at v1** (gate G1, `docs/decisions/0007-g1-contract-freeze.md`). Only the architect
+- **Frozen at v1** (gate G1, `docs/decisions/0007-g1-contract-freeze.md`; scene v1.1 adds the
+  optional landmark details of ADR 0008). Only the architect
   changes contracts, via `prompts/00-bootstrap.md` Task B: version bump + ADR + regenerated
   fixtures. Where a prompt and a contract disagree, the contract wins.
 - Each component implements the projection itself (≈ 20 lines) and proves conformance against

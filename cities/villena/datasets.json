@@ -86,7 +86,7 @@
       "name": "MDT05 Elevación WCS (Elevacion25830_5)",
       "version": "2009",
       "acquisitionDate": "2009",
-      "coverage": "AOI + margin (E 685380-686620, N 4277380-4278620)",
+      "coverage": "AOI + margin (E 685230-686620, N 4277380-4279220)",
       "url": "https://servicios.idee.es/wcs-inspire/mdt",
       "access": "ogc-service",
       "resolution": "5 m",
@@ -101,18 +101,18 @@
         "derivatives": true,
         "notes": "Low-resolution scriptable fallback terrain. CC BY 4.0 permits redistribution with attribution."
       },
-      "sizeBytes": 493615,
-      "sha256": "ae3fb9adfdebb9ecb332ec77598a887967cbe45f3e427d831d0a0ef8580136a4",
-      "localPath": "data/raw/ign-mdt05/mdt05-aoi-margin.asc",
+      "sizeBytes": 820135,
+      "sha256": "f08987ac44367acf5546b196762996ac716f551a8aff61abf7e208099cda5663",
+      "localPath": "data/raw/ign-mdt05/mdt05-aoi-margin-v2.asc",
       "retrievedAt": "2026-11-15"
     },
     {
       "id": "osm",
       "provider": "OpenStreetMap contributors",
       "name": "OpenStreetMap AOI + margin extract",
-      "version": "2026-11-15T12:22:50Z",
+      "version": "2026-11-15T17:35:40Z",
       "acquisitionDate": "2026-11-15",
-      "coverage": "AOI + 120 m margin (lat: 38.625327-38.636754, lon: -0.870437--0.855869)",
+      "coverage": "AOI + 120 m margin (lat: 38.625327-38.642189, lon: -0.872159--0.855708)",
       "url": "https://overpass-api.de/api/interpreter",
       "access": "direct",
       "resolution": "vector",
@@ -127,9 +127,9 @@
         "derivatives": true,
         "notes": "Raw and derivative databases must be offered under ODbL. Rendered pixel-art tiles and images are Produced Works exempt from share-alike."
       },
-      "sizeBytes": 11046725,
-      "sha256": "7e5a4e82561b24ad9693006585ea0568b0289a4e25ca90b9e9e4a8f1029e01a4",
-      "localPath": "data/raw/osm/osm-aoi-margin.json",
+      "sizeBytes": 11581743,
+      "sha256": "61532bcea24cba860246050295c45a048ab192fe9568cfbb750e93421a60c50b",
+      "localPath": "data/raw/osm/osm-aoi-margin-v2.json",
       "retrievedAt": "2026-11-15"
     }
   ]

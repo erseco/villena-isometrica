@@ -22,6 +22,36 @@ export interface Part {
   roof: 'flat' | 'pitched' | 'unknown';
   use: string;
   landmark: string | null;
+  /** Curated (v1.1): merlons along the wall tops. */
+  parapet: boolean;
+  /** Curated (v1.1): wall material overriding the style derived from `use`. */
+  material: 'stone' | 'brick' | 'plaster' | null;
+}
+
+export type DetailMaterial = 'stone' | 'brick' | 'plaster' | 'tile' | 'slate' | 'metal';
+
+/** Curated landmark solid (scene contract v1.1, `details` layer), in local coordinates. */
+export interface Detail {
+  id: string;
+  kind: 'cylinder' | 'cone' | 'dome' | 'gable';
+  x: number;
+  y: number;
+  baseZ: number;
+  heightM: number;
+  /** 0 on a gable. */
+  radiusM: number;
+  topRadiusM: number;
+  sides: 0 | 4;
+  rotationDeg: number;
+  material: DetailMaterial;
+  parapet: boolean;
+  /** Cylinder only: arched openings in two tiers (a bullring facade). */
+  arcade: boolean;
+  /** Gable only (0 / null elsewhere): plan size, eaves height above the base, roof material. */
+  lengthM: number;
+  widthM: number;
+  wallHeightM: number;
+  roofMaterial: DetailMaterial | null;
 }
 
 export interface Road {
@@ -76,6 +106,7 @@ export interface Scene {
   roads: Road[];
   covers: Cover[];
   trees: Tree[];
+  details: Detail[];
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: parsed JSON is checked by the schema or by hand below
@@ -189,6 +220,10 @@ export function loadScene(dir: string, city: City): Scene {
       const ridge = q.ridgeHeightM == null ? null : num(q.ridgeHeightM, path, `${q.id} ridgeHeightM`);
       if (ridge !== null && !(ridge > heightM)) fail(path, `${q.id}: ridgeHeightM must exceed heightM`);
       if (!['flat', 'pitched', 'unknown'].includes(q.roof)) fail(path, `${q.id}: unknown roof ${q.roof}`);
+      if (q.parapet !== undefined && q.parapet !== 'battlement')
+        fail(path, `${q.id}: parapet must be "battlement", got ${JSON.stringify(q.parapet)}`);
+      if (q.material !== undefined && !PART_MATERIALS.includes(q.material))
+        fail(path, `${q.id}: material must be one of ${PART_MATERIALS.join(', ')}, got ${JSON.stringify(q.material)}`);
       return {
         id: q.id,
         buildingId: String(q.buildingId),
@@ -200,6 +235,8 @@ export function loadScene(dir: string, city: City): Scene {
         roof: q.roof,
         use: String(q.use),
         landmark: q.landmark ?? null,
+        parapet: q.parapet === 'battlement',
+        material: q.material ?? null,
       };
     });
   };
@@ -238,6 +275,7 @@ export function loadScene(dir: string, city: City): Scene {
       });
     }
   }
+  const details: Detail[] = L.details ? loadDetails(dir, L.details, E0, N0, H0) : [];
   return {
     cityId: m.cityId,
     sceneSha256: sha256(raw),
@@ -251,7 +289,104 @@ export function loadScene(dir: string, city: City): Scene {
     roads,
     covers,
     trees,
+    details,
   };
+}
+
+const PART_MATERIALS = ['stone', 'brick', 'plaster'];
+const DETAIL_MATERIALS: DetailMaterial[] = ['stone', 'brick', 'plaster', 'tile', 'slate', 'metal'];
+const ROOF_MATERIALS: DetailMaterial[] = ['tile', 'slate', 'metal'];
+const GABLE_KEYS = ['lengthM', 'widthM', 'wallHeightM', 'roofMaterial'];
+const DETAIL_KEYS = new Set([
+  'id',
+  'landmark',
+  'kind',
+  'baseH',
+  'heightM',
+  'radiusM',
+  'topRadiusM',
+  'sides',
+  'rotationDeg',
+  'material',
+  'parapet',
+  'openings',
+  'lengthM',
+  'widthM',
+  'wallHeightM',
+  'roofMaterial',
+  'shapeSource',
+  'dimensionsSource',
+]);
+
+/** The optional `details` layer, validated strictly: any bad property fails with the detail id. */
+function loadDetails(dir: string, ref: Json, E0: number, N0: number, H0: number): Detail[] {
+  const path = join(dir, ref.path);
+  const feats = features(readChecked(dir, ref), path, 'Point');
+  if (feats.length !== ref.count) fail(path, `${feats.length} features, scene.json says ${ref.count}`);
+  const ids = new Set<string>();
+  return feats.map((f) => {
+    const q = f.properties;
+    const id: string = q.id;
+    const bad = (msg: string): never => fail(path, `detail ${id}: ${msg}`);
+    if (ids.has(id)) bad('duplicate id');
+    ids.add(id);
+    for (const k of Object.keys(q)) if (!DETAIL_KEYS.has(k)) bad(`unknown property ${k}`);
+    if (typeof q.landmark !== 'string' || q.landmark === '') bad('landmark must be a POI id');
+    if (!['cylinder', 'cone', 'dome', 'gable'].includes(q.kind)) bad(`unknown kind ${JSON.stringify(q.kind)}`);
+    if (!DETAIL_MATERIALS.includes(q.material)) bad(`unknown material ${JSON.stringify(q.material)}`);
+    if (q.shapeSource !== 'reference') bad('shapeSource must be "reference"');
+    if (!['surface-model', 'estimated'].includes(q.dimensionsSource))
+      bad(`unknown dimensionsSource ${JSON.stringify(q.dimensionsSource)}`);
+    const positive = (k: string): number => {
+      if (typeof q[k] !== 'number' || !Number.isFinite(q[k]) || !(q[k] > 0)) bad(`${k} must be a finite number > 0`);
+      return q[k];
+    };
+    const heightM = positive('heightM');
+    const gable = q.kind === 'gable';
+    if (gable && q.radiusM !== undefined) bad('radiusM is not allowed on a gable');
+    for (const k of GABLE_KEYS) if (!gable && q[k] !== undefined) bad(`${k} is only allowed on a gable`);
+    const radiusM = gable ? 0 : positive('radiusM');
+    const lengthM = gable ? positive('lengthM') : 0;
+    const widthM = gable ? positive('widthM') : 0;
+    const wallHeightM = gable ? positive('wallHeightM') : 0;
+    if (gable && !(wallHeightM < heightM)) bad('wallHeightM must be < heightM');
+    if (gable && !ROOF_MATERIALS.includes(q.roofMaterial))
+      bad(`roofMaterial must be one of ${ROOF_MATERIALS.join(', ')}, got ${JSON.stringify(q.roofMaterial)}`);
+    if (q.openings !== undefined && (q.openings !== 'arcade' || q.kind !== 'cylinder'))
+      bad('openings must be "arcade" and is only allowed on a cylinder');
+    if (typeof q.baseH !== 'number' || !Number.isFinite(q.baseH)) bad('baseH must be a finite number');
+    if (q.kind !== 'cone' && (q.topRadiusM !== undefined || q.sides !== undefined))
+      bad('topRadiusM and sides are only allowed on a cone');
+    const topRadiusM = q.topRadiusM ?? 0;
+    if (typeof topRadiusM !== 'number' || !Number.isFinite(topRadiusM) || topRadiusM < 0)
+      bad('topRadiusM must be a finite number >= 0');
+    const sides = q.sides ?? 0;
+    if (sides !== 0 && sides !== 4) bad(`sides must be 0 or 4, got ${JSON.stringify(q.sides)}`);
+    const rotationDeg = q.rotationDeg ?? 0;
+    if (typeof rotationDeg !== 'number' || !Number.isFinite(rotationDeg)) bad('rotationDeg must be a finite number');
+    if (q.parapet !== undefined && (q.parapet !== 'battlement' || q.kind !== 'cylinder'))
+      bad('parapet must be "battlement" and is only allowed on a cylinder');
+    const [e, n] = f.geometry.coordinates ?? [];
+    return {
+      id,
+      kind: q.kind,
+      x: num(e, path, `${id} coordinate`) - E0,
+      y: num(n, path, `${id} coordinate`) - N0,
+      baseZ: q.baseH - H0,
+      heightM,
+      radiusM,
+      topRadiusM,
+      sides,
+      rotationDeg,
+      material: q.material,
+      parapet: q.parapet === 'battlement',
+      arcade: q.openings === 'arcade',
+      lengthM,
+      widthM,
+      wallHeightM,
+      roofMaterial: gable ? q.roofMaterial : null,
+    };
+  });
 }
 
 /** Bilinear terrain height at local (x, y), clamped to the outermost sample centres. */

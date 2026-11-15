@@ -25,7 +25,7 @@ from rasterio.fill import fillnodata
 from rasterio.warp import Resampling
 from shapely.geometry import LineString, Point, Polygon, box
 
-from . import buildings, osm
+from . import buildings, details, osm
 from .inputs import ROLES, City, Grid, PipelineError, load_city, read_raster
 
 SCHEMAS = Path(__file__).resolve().parents[2] / "packages" / "geo-contracts" / "schemas"
@@ -82,11 +82,12 @@ def surface_model(city: City, clip_bounds) -> tuple[buildings.Surface, dict]:
                                                      "sameResolution": same_grid}
 
 
-def detect_trees(surface: buildings.Surface, parts: list[buildings.Part], mapped: list[dict]) -> list[dict]:
+def detect_trees(surface: buildings.Surface, parts: list[buildings.Part], mapped: list[dict],
+                 extra: list = ()) -> list[dict]:
     """Canopy peaks of the normalised surface model outside buildings and structures."""
     g = surface.grid
     nd = np.nan_to_num(surface.ndsm, nan=-1.0)
-    solid = [(p.footprint or p.geom).buffer(BUILDING_BUFFER) for p in parts]
+    solid = [g.buffer(BUILDING_BUFFER) for g in [(p.footprint or p.geom) for p in parts] + list(extra)]
     blocked = ~geometry_mask(solid, (g.height, g.width), g.transform) if solid else np.zeros(nd.shape, bool)
     half = CANOPY_WINDOW // 2
     local_max = sliding_window_view(np.pad(nd, half, constant_values=-1.0), (CANOPY_WINDOW, CANOPY_WINDOW)).max(
@@ -184,10 +185,14 @@ def build(city: City, out: Path, fallback: bool) -> dict:
     lc_feats, lcounts = osm.landcover(elements, clip_bounds)
     structs, scounts = buildings.build_structures(osm.structures(elements, clip_bounds, pois), parts, clip_bounds,
                                                   tgrid, terrain, surface, pois)
+    curated = details.load(city.dir / "landmark-details.json", {p["id"] for p in pois})
+    detail_feats, replaced, detail_shapes, dcounts = details.apply(curated, parts + structs, box(*clip_bounds))
+    parts = [p for p in parts if p.id not in replaced]
+    structs = [p for p in structs if p.id not in replaced]
     solids = parts + structs
     trees = osm.mapped_trees(elements, clip_bounds)
     if surface is not None:
-        trees += detect_trees(surface, solids, trees)
+        trees += detect_trees(surface, solids, trees, detail_shapes)
 
     for p in pois:
         hit = next((b for b in solids if b.geom.covers(Point(p["E"], p["N"]))), None) \
@@ -202,12 +207,15 @@ def build(city: City, out: Path, fallback: bool) -> dict:
               "roads": road_feats, "landcover": lc_feats, "trees": trees}
     if structs:  # optional layer: written only when there is something in it
         layers["structures"] = [{"geometry": p.geom, "properties": p.properties()} for p in structs]
+    if detail_feats:
+        layers["details"] = detail_feats
     validate(layers, pois, clip_bounds, aoi_bounds, terrain)
     pois_doc = {"schemaVersion": "1.0", "cityId": cfg["id"], "pois": pois}
     check_schema("scene-pois", pois_doc)
 
     h0 = cfg["origin"]["H0"]
     tops = [p.top for p in solids]
+    tops += [f["properties"]["baseH"] + f["properties"]["heightM"] for f in detail_feats]
     tops += [tgrid.bilinear(terrain, t["geometry"].x, t["geometry"].y) + t["properties"]["heightM"] for t in trees]
     z_range = {"zMin": math.floor(float(terrain.min()) - 1 - h0),
                "zMax": math.ceil(max([float(terrain.max())] + tops) + 1 - h0)}
@@ -228,7 +236,8 @@ def build(city: City, out: Path, fallback: bool) -> dict:
         return hashlib.sha256(files[name]).hexdigest()
 
     manifest = {
-        "schemaVersion": "1.0", "cityId": cfg["id"], "crs": cfg["crs"], "aoi": cfg["aoi"], "origin": cfg["origin"],
+        "schemaVersion": "1.1" if detail_feats else "1.0", "cityId": cfg["id"], "crs": cfg["crs"],
+        "aoi": cfg["aoi"], "origin": cfg["origin"],
         "zRange": z_range,
         "terrain": {"path": "terrain.f32", "width": tgrid.width, "height": tgrid.height, "cellSize": tgrid.cell,
                     "westE": tgrid.west, "northN": tgrid.north, "dtype": "float32-le", "unit": "m",
@@ -253,7 +262,7 @@ def build(city: City, out: Path, fallback: bool) -> dict:
             "provenance": provenance, "terrain": tinfo | {"min": float(terrain.min()), "max": float(terrain.max())},
             "surface": sinfo, "buildings": bcounts, "heightSources": sources, "roofs": roofs,
             "disagreements": disagreements, "roads": rcounts | {"features": len(road_feats)},
-            "landcover": lcounts | {"features": len(lc_feats)}, "structures": scounts,
+            "landcover": lcounts | {"features": len(lc_feats)}, "structures": scounts, "details": dcounts,
             "trees": {s: sum(t["properties"]["source"] == s for t in trees) for s in ("mapped", "surface-model")},
             "pois": len(pois), "zRange": z_range, "imageSize": image_size(cfg, z_range),
             "landmarks": {p.id: (p.landmark, round(p.base_h, 2), round(p.height, 2), p.height_source)
@@ -279,7 +288,8 @@ def write_report(stats: dict, path: Path) -> None:
     lines = [f"# Scene report — {stats['mode']} mode", "",
              "Generated by `geospatial.build_scene`. Regenerate rather than edit.", "",
              "| Item | Value |", "|---|---|"]
-    for k in ("mode", "seconds", "heightSources", "roofs", "buildings", "structures", "roads", "landcover", "trees",
+    for k in ("mode", "seconds", "heightSources", "roofs", "buildings", "structures", "details", "roads", "landcover",
+              "trees",
               "pois",
               "zRange", "imageSize", "terrain", "surface"):
         lines.append(f"| {k} | `{json.dumps(stats[k], sort_keys=True)}` |")
