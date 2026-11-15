@@ -227,3 +227,31 @@ test('a missing tile does not break the viewer', async ({ page }) => {
   await page.getByRole('button', { name: 'Alejar' }).click()
   await expect(page.locator('#map canvas').first()).toBeVisible()
 })
+
+const mutateManifest = (page: Page, f: (m: Record<string, unknown>) => void) =>
+  page.route('**/manifest.json', async (route) => {
+    const m = await (await route.fetch()).json()
+    f(m)
+    await route.fulfill({ json: m })
+  })
+
+test('unknown MAJOR schemaVersion shows the error state', async ({ page }) => {
+  await mutateManifest(page, (m) => { m.schemaVersion = '2.0' })
+  await page.goto('')
+  await expect(page.locator('#status.error')).toBeVisible()
+  await expect(page.locator('#map canvas')).toHaveCount(0)
+})
+
+test('manifest without height grid: map works and positions are flagged approximate', async ({ page }) => {
+  const { errors } = watch(page)
+  await mutateManifest(page, (m) => { delete m.heightGrid })
+  await open(page)
+  await expect(page.getByTestId('approx')).toBeVisible()
+  expect(await hash(page)).toMatch(/^#map=/)
+  expect(errors).toEqual([])
+})
+
+test('manifest with a height grid does not show the approximate flag', async ({ page }) => {
+  await open(page)
+  await expect(page.getByTestId('approx')).toHaveCount(0)
+})

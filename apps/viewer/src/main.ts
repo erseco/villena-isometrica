@@ -1,6 +1,7 @@
 import OpenSeadragon from 'openseadragon'
 import './style.css'
 import { cameraOf, forward, geoToWorld, inGrid, inverseAtHeight, parseGrid, pick, terrain, worldToGeo, type Camera, type Grid } from './geo'
+import { assertMajor1 } from './schema'
 import { search } from './search'
 import { t } from './strings'
 import type { Manifest, Poi, Style } from './types'
@@ -34,6 +35,7 @@ function fail(err: unknown) {
 
 async function boot() {
   const man = await getJson<Manifest>(MANIFEST_URL)
+  assertMajor1(man, 'manifest')
   document.body.style.background = man.background
   document.title = `${man.name} · ${t.title}`
   const cam = cameraOf(man)
@@ -49,7 +51,11 @@ async function boot() {
   }
   let pois: Poi[] = []
   if (man.pois) {
-    try { pois = (await getJson<{ pois: Poi[] }>(new URL(man.pois, MANIFEST_URL))).pois } catch (e) { console.warn('pois unavailable', e) }
+    try {
+      const f = await getJson<{ schemaVersion: string; pois: Poi[] }>(new URL(man.pois, MANIFEST_URL))
+      assertMajor1(f, 'pois')
+      pois = f.pois
+    } catch (e) { console.warn('pois unavailable', e) }
   }
 
   const { width: W, height: H } = man.image
@@ -64,6 +70,8 @@ async function boot() {
     credits.append(a.url ? el('a', { href: a.url, rel: 'noopener' }, a.text) : el('span', {}, a.text))
   })
 
+  // No height grid: positions come from the reference plane and are approximate (projection.md 5.2).
+  if (!grid) credits.append(' · ', el('span', { class: 'approx', 'data-testid': 'approx' }, t.approxPosition))
   app.append(credits) // laid out before the viewer measures its container
 
   // ---- tile source -------------------------------------------------------------------------

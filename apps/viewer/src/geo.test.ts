@@ -41,7 +41,7 @@ describe('reference plane', () => {
     for (const c of exp.referencePlane.cases) {
       const [E, N] = inverseAtHeight(cam, c.X, c.Y, 0)
       expect(Math.abs(E - c.E)).toBeLessThan(1e-6)
-      expect(Math.abs(N - c.N)).toBeLessThan(1e-4)
+      expect(Math.abs(N - c.N)).toBeLessThan(1e-6)
     }
   })
   test('inverse(forward(P), z) = P', () => {

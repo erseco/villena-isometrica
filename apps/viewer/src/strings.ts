@@ -17,6 +17,7 @@ export const es = {
   close: 'Cerrar',
   style: 'Estilo',
   mapLabel: 'Mapa isométrico. Flechas para desplazar, más y menos para acercar o alejar, 0 para la vista completa.',
+  approxPosition: 'Posición de la URL aproximada (sin rejilla de alturas)',
   attribution: 'Datos y créditos',
   aboutTitle: 'Acerca de este mapa',
   aboutIntro: 'Mapa isométrico de píxel art de Villena (Alicante), generado a partir de datos abiertos y publicado como imágenes estáticas. No hay seguimiento ni servicios externos.',

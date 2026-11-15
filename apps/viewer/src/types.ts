@@ -6,6 +6,7 @@ export interface HeightGridMeta {
   westE: number; northN: number; offset: number; scale: number
 }
 export interface Manifest {
+  schemaVersion: string
   name: string
   background: string
   attribution: Attribution[]

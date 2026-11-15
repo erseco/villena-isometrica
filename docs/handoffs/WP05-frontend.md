@@ -44,7 +44,7 @@ reference-plane inverse, terrain, pick, geoToWorld; dependency-free), `src/url.t
 - Pick implements projection.md 5.2: slab clip against the grid rectangle, march 0.5 cell, bisect to 0.01 m. Camera angles are derived from the manifest matrix, not from the angle fields. If the ray enters the rectangle already below the terrain, the entry point is returned.
 - Deep links: lat/lon go through geoToWorld, terrain at (E, N), forward. Outside the height grid rectangle or the image counts as out of bounds, so home view.
 - URL is not rewritten after being applied from a URL while the view has not moved (keeps the round trip stable despite 6-decimal rounding).
-- Search fly-to for POIs without `imageBounds` uses 2 CSS px per image px. The fixture's red cross is drawn on pixel int(X), so its centre is up to 0.5 image px from the anchor; zoom 2 keeps this under the 2 CSS px tolerance.
+- Search fly-to for POIs without `imageBounds` uses 3 CSS px per image px. The fixture's red cross is drawn on pixel int(X), so its centre is up to 0.5 image px from the anchor (about 2.1 CSS px on the diagonal at zoom 3); the e2e tolerance is tight, not generous.
 - The pattern in e2e for the cross uses canvas pixel colour (0xD9,0x3A,0x3A) read from the OSD canvas, independent of the app code.
 - Attribution bar is always visible and wraps; no collapse button (allowed by the prompt: "may collapse").
 - Seams: no visible seams or blur at zoom 0.63, 1.37, 2.71 on the fixture (visual check only; the fixture is low contrast, re-check on Villena tiles).
@@ -69,3 +69,9 @@ none for this package. Nothing pushed.
 ## Recommended next task
 
 WP06/WP08 integration once real tiles exist; then WP12 integrator adds the dependencies above to THIRD_PARTY_NOTICES.md.
+
+## Review round
+
+1. Missing `schemaVersion` check: real. `src/schema.ts` `assertMajor1` is called on the manifest (throws into `fail()`, error state) and on the POI file (POIs degrade to none, as for any POI failure). `schemaVersion` added to the `Manifest` type. Tests: `src/schema.test.ts`, e2e "unknown MAJOR schemaVersion shows the error state".
+2. No-grid positions not flagged: real. Without a height grid the credits bar shows "Posición de la URL aproximada (sin rejilla de alturas)" (`data-testid=approx`, string in `strings.ts`). e2e covers the no-grid manifest (route-mutated fixture) and the with-grid case (no flag).
+3. Notes: handoff zoom corrected to 3 CSS px; reference-plane N tolerance tightened to 1e-6. Acceptance 4 (keep deep link): the URL lat/lon is the ground pick, so the keep's own lat/lon lands below its roof; the e2e reaches the keep through search and reloads the produced URL (README sentence is for the integrator, README is not in WP05 paths). Grid-load-failure fallback to the plane (prompt 7.3) versus projection.md 5.2: left as is, flagged for the architect; it now also shows the approximate flag. CI fixture tiles in dist, and the `@types/bun` caret range: not WP05 scope, unchanged.
