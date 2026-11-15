@@ -3,13 +3,15 @@
 Maintained by the integrator (WP12); the architect edits the contract line and decisions.
 A summary, not a log — details are in `docs/handoffs/`.
 
-Last updated: 2026-11-15 (gate G1 passed; WP01, WP02, WP03, WP07 merged).
+Last updated: 2026-11-15 (WP04, WP05, WP06 merged; phase 2 complete).
 
 ## Now
 
 - **Contracts: FROZEN v1** at commit `417f07e` (`docs/decisions/0007-g1-contract-freeze.md`).
   Changes only through `prompts/00-bootstrap.md` Task B.
-- Phase 1 is complete. **Phase 2 can start in parallel: WP04, WP05, WP06.**
+- Phases 1 and 2 are complete. **Next: WP08 (tests), then the first real build.**
+- WP04–WP06 were run at the owner's request by Claude models in a workflow (Opus 5.5 / Sonnet 5.5),
+  each reviewed by the other Claude model and merged by the architect. No non-Claude review yet.
 - `main` contains the bootstrap, the WP02 review, WP07 tooling/CI, WP01 data, the freeze and the
   WP03 pipeline. `make check` is green (contracts, lint, 31 tests, fixtures reproducible).
 - `main` is pushed to `origin` (owner's authorisation, 2026-11-15). **CI is green on GitHub**
@@ -28,10 +30,10 @@ Last updated: 2026-11-15 (gate G1 passed; WP01, WP02, WP03, WP07 merged).
 | WP02 architecture review | done, merged; findings closed at G1 | `agent/wp02-architecture-review` @ `13e0d67` | DeepSeek V4 Pro. R-10 rejected as proposed, R-20 deferred to WP08; the rest accepted. |
 | WP07 tooling, CI/CD | done, merged | `feature/wp07-ci-cd` @ `bb2e399` | Codex. CI runs green on GitHub; the deploy workflow has only run its intended early failure. |
 | WP03 GIS pipeline | **merged; real scene fallback-only** | `agent/wp03-gis-pipeline` @ `7095b3d` | Opus 5.5, adapted by the architect after G1. Full mode waits for the two IGN sheets. Cross-provider review owed. |
-| WP04 render engine | **ready to start** | | can use the fallback Villena scene (`make scene` needs `data/raw/`, see below) |
-| WP05 viewer | **ready to start** | | |
-| WP06 tile export | **ready to start** | | |
-| WP08 tests | waiting: WP04–WP06 | | owes fixture requests to the architect (R-04, R-20) |
+| WP04 render engine | done, merged | `feature/wp04-render-engine` @ `1d5623b` | Opus 5.5; reviewed by Sonnet 5.5 (approve). Software rasteriser in TypeScript (ADR 0006; Three.js spike rejected: output depended on chunk size). Villena fallback scene renders in ≈ 10 s, 3 GB. |
+| WP05 viewer | done, merged | `feature/wp05-frontend` @ `3cde035` | Sonnet 5.5; reviewed by Opus 5.5 (2 blocking findings fixed: `schemaVersion` check, approximate-position flag). 94 kB gzip. |
+| WP06 tile export | done, merged | `feature/wp06-tile-export` @ `6bc35c0` | Opus 5.5; reviewed by Sonnet 5.5 (approve). Indexed PNG, mode kernel. Only run on the synthetic fixture. |
+| WP08 tests | **ready to start** | | owes fixture requests to the architect (R-04, R-20) |
 | WP09 visual QA | waiting: real tiles | | |
 | WP10 AI benchmark | optional; waiting: real render | | Phase B needs a budget approval |
 | WP11 independent review | waiting: WP03–WP08 | | must include WP03 (written and adapted by Claude models) |
@@ -86,7 +88,8 @@ checksums match the manifest). To build the scene from another checkout, either 
 
 - The full-mode height logic (surface model, roof slope, zoning, canopy) has only ever run on
   synthetic data. The first run with the real IGN sheets is the next real test of WP03.
-- The renderer's cross-platform pixel determinism is unproven until the WP04 spike.
+- The renderer's pixel hashes match between macOS arm64 and an emulated linux/amd64 container;
+  native x86-64 is covered by the golden test in CI.
 - The deploy workflow has never run past its tiles-lock guard; the JS job of CI has
   nothing to run yet.
 - Catastro has only the castle's keep; the enclosure and the town walls come from OSM outlines,
@@ -97,6 +100,18 @@ checksums match the manifest). To build the scene from another checkout, either 
 
 ## Open defects
 
-None recorded against merged code. Deferred from the WP02 review: R-20 (richer synthetic
+None recorded against merged code. Requests to the architect from phase 2 (contracts are frozen;
+decide at the next Task B):
+- WP06: POI lat/lon and E,N rounding exceeds `maxResidualM` (validator allows 0.015 m extra);
+  `expected.json` sits inside the fixture tile directory, which `render.md` forbids; fixture lower
+  levels use the mean kernel while the exporter defaults to mode.
+- WP05: prompt §7.3 falls back to the reference plane when the height grid fails to load;
+  `projection.md` §5.2 allows it only for manifests without a grid. The viewer follows the prompt
+  and shows the approximate flag.
+- WP04: depth value 0 is ambiguous (the pixel at `dMin` and undrawn pixels).
+- Integrator/WP07: `ci.yml` and `deploy.yml` run `bun run fixture` before the build, so the
+  Planeville fixture tiles end up in `dist` — must be removed from the deploy path before the
+  first release.
+ Deferred from the WP02 review: R-20 (richer synthetic
 fixtures: wall/roof/vegetation classes, a margin building, a terrain ridge) — WP08 lists what it
 needs and the architect regenerates.
