@@ -109,9 +109,3 @@ decide at the next Task B):
   `projection.md` §5.2 allows it only for manifests without a grid. The viewer follows the prompt
   and shows the approximate flag.
 - WP04: depth value 0 is ambiguous (the pixel at `dMin` and undrawn pixels).
-- Integrator/WP07: `ci.yml` and `deploy.yml` run `bun run fixture` before the build, so the
-  Planeville fixture tiles end up in `dist` — must be removed from the deploy path before the
-  first release.
- Deferred from the WP02 review: R-20 (richer synthetic
-fixtures: wall/roof/vegetation classes, a margin building, a terrain ridge) — WP08 lists what it
-needs and the architect regenerates.
