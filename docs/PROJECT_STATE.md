@@ -79,16 +79,15 @@ checksums match the manifest). To build the scene from another checkout, either 
 7. **Worktree location**: worktrees default to a sibling directory of the repository, which may be cloud-synced; WP07's is in
    `/tmp`, which a reboot clears (its branch is merged, so nothing is lost).
 8. **GitHub owner placeholders**: documents still say `<github-owner>`; the remote is known now.
-9. **GitHub Pages**: after the push, the `Deploy Pages` workflow will fail on purpose on every
-   push to `main` ("Missing tiles lock") until the first release exists. Disable that workflow
-   in the repository settings if the red runs are unwanted.
+9. **GitHub Pages**: the `Deploy Pages` workflow skips its build and deploy jobs (green, with a
+   notice) until `cities/villena/tiles.lock.json` exists; nothing to decide until the first release.
 
 ## Open risks
 
 - The full-mode height logic (surface model, roof slope, zoning, canopy) has only ever run on
   synthetic data. The first run with the real IGN sheets is the next real test of WP03.
 - The renderer's cross-platform pixel determinism is unproven until the WP04 spike.
-- The deploy workflow has never run past its "missing tiles lock" guard; the JS job of CI has
+- The deploy workflow has never run past its tiles-lock guard; the JS job of CI has
   nothing to run yet.
 - Catastro has only the castle's keep; the enclosure and the town walls come from OSM outlines,
   whose heights depend entirely on the surface model.

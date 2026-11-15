@@ -9,7 +9,20 @@ concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
+  # No tile release yet -> nothing to deploy: skip (not fail) until the lock exists.
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.lock.outputs.ready }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: lock
+        run: |
+          if [ -f cities/villena/tiles.lock.json ]; then echo "ready=true" >> "$GITHUB_OUTPUT"
+          else echo "ready=false" >> "$GITHUB_OUTPUT"; echo "::notice::No cities/villena/tiles.lock.json yet; deployment skipped."; fi
   build:
+    needs: guard
+    if: needs.guard.outputs.ready == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -21,7 +34,6 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.4
-      - run: test -f cities/villena/tiles.lock.json || { echo "Missing tiles lock; create it with export.pack and WP12 release integration."; exit 2; }
       - run: make install check
       - run: |
           if [ -f apps/viewer/package.json ]; then
