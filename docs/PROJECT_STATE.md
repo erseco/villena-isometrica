@@ -3,22 +3,25 @@
 Maintained by the integrator (WP12); the architect edits the contract line and decisions.
 A summary, not a log — details are in `docs/handoffs/`.
 
-Last updated: 2026-11-15 (bootstrap).
+Last updated: 2026-11-15 (WP00 and WP02 merged).
 
 ## Now
 
-- **Contracts: PROPOSED v1** — not frozen. Freeze happens at gate G1 after WP02.
-- Phase 1 can start: **WP01, WP02, WP07** in parallel (`docs/EXECUTION_PLAN.md`).
-- The bootstrap is committed on branch `agent/wp00-bootstrap`; `main` must be fast-forwarded to it
-  before any worktree is created. Nothing was pushed by the bootstrap. A remote `origin` exists.
+- **Contracts: PROPOSED v1** — not frozen. Gate G1 must resolve the WP02 findings first.
+- **WP02 review is in**: 1 blocker (R-01), 6 major (R-02…R-07), 10 minor, 3 notes —
+  `docs/handoffs/WP02-architecture-review.md`. Nothing in it asks for a different architecture.
+- Phase 1: WP01 and WP07 can continue; WP02 is done; G1 is next and blocks WP03–WP06.
+- `main` contains the bootstrap and the WP02 review. Nothing is pushed: `origin/main` is at
+  `f25c54c` and `main` is ahead. WP01 and WP03 worktrees are based on `ba8ba0c`; if G1 changes
+  a contract, both must re-read it.
 
 ## Work packages
 
 | WP | Status | Branch / commit | Notes |
 |---|---|---|---|
-| WP00 bootstrap | done | `agent/wp00-bootstrap` | `docs/handoffs/WP00-bootstrap.md` |
-| WP01 data verification | ready to start | | |
-| WP02 architecture review | ready to start | | |
+| WP00 bootstrap | done, merged | `agent/wp00-bootstrap` @ `ba8ba0c` | `docs/handoffs/WP00-bootstrap.md` |
+| WP01 data verification | in progress (worktree) | `agent/wp01-data-research` | |
+| WP02 architecture review | done, merged; findings open | `agent/wp02-architecture-review` @ `13e0d67` | `docs/handoffs/WP02-architecture-review.md`; R-01 blocks G1 |
 | WP07 tooling, CI/CD | ready to start | | |
 | WP03 GIS pipeline | waiting: G1, WP01, WP07 | | needs the two manual IGN files for a release-quality scene |
 | WP04 render engine | waiting: G1 | | |
@@ -32,7 +35,8 @@ Last updated: 2026-11-15 (bootstrap).
 
 ## Decisions needed from the owner
 
-1. **Merge the bootstrap into `main`**: `git switch main && git merge --ff-only agent/wp00-bootstrap`.
+1. ~~Merge the bootstrap into `main`~~ — done: `main` was fast-forwarded to `ba8ba0c`.
+   The WP02 review is merged with `--no-ff`; nothing is pushed.
 2. **Licences**: code is MIT (the owner's `LICENSE`). CC BY 4.0 for artwork, tiles and docs
    is still a proposal.
 3. **Model access**: confirm which Codex "Sol"/"Terra" generation your plan includes
@@ -53,10 +57,14 @@ Last updated: 2026-11-15 (bootstrap).
 
 ## Open risks
 
-See `docs/ARCHITECTURE.md` → Known risks. Most urgent: the contracts have not been
-independently reviewed yet (WP02), and the renderer's cross-platform determinism is unproven
-until the WP04 spike.
+See `docs/ARCHITECTURE.md` → Known risks. Most urgent: the WP02 blocker (R-01, the
+terrain-aware pick has no rule when the ray never enters the height grid) and R-02…R-07 must be
+resolved at G1, because WP03–WP06 would implement them as written. The renderer's
+cross-platform determinism is unproven until the WP04 spike, and R-07 says the "byte-identical
+PNG" requirement as written cannot hold without a pinned encoder.
 
 ## Open defects
 
-None recorded.
+Contract defects found by the WP02 review, none fixed yet (the architect resolves them at G1):
+R-01 (blocker), R-02…R-07 (major), R-08…R-17 (minor). Full entries with evidence and proposed
+text: `docs/handoffs/WP02-architecture-review.md`.
