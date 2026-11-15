@@ -6,6 +6,11 @@
  ],
  "background": "#1b2632",
  "cityId": "planeville",
+ "crs": {
+  "geographic": "EPSG:4326",
+  "verticalDatum": "synthetic",
+  "world": "EPSG:25830"
+ },
  "geoToWorld": {
   "matrix": [
    [
@@ -65,6 +70,7 @@
   ]
  },
  "release": "fixture-1",
+ "renderSha256": "1d0836f3f743f7a95b543f547414f9a5cb3dd51c6901dbd482e8e56eb77186a1",
  "schemaVersion": "1.0",
  "styles": [
   {

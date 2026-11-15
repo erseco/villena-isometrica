@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://villena-isometrica.invalid/schemas/poi.schema.json",
   "title": "POI and search index (published, viewer input)",
-  "description": "X, Y are the forward projection of (E, N, H); H is the height of the marker anchor (terrain, or roof for structures).",
+  "description": "X, Y are the forward projection of (E, N, H); H is the height of the marker anchor (terrain, or roof for structures). Sorted by id.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -112,26 +112,6 @@
               "ref"
             ],
             "description": "Where the position comes from, e.g. dataset 'osm', ref 'way/123'. Mandatory: no unsourced POIs."
-          },
-          "worldBounds": {
-            "type": "array",
-            "prefixItems": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              }
-            ],
-            "items": false,
-            "minItems": 4,
-            "description": "[minE, minN, maxE, maxN]. Scene-side only: the tile exporter converts it to imageBounds (projecting the four corners at height H) and drops it from the published file."
           }
         },
         "required": [

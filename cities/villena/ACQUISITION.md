@@ -26,7 +26,7 @@ Predefined municipal ATOM dataset containing Building and BuildingPart GML footp
 ```bash
 mkdir -p data/raw/catastro-buildings
 
-curl -k -sS -A "Mozilla/5.0 (compatible; geodata-research/1.0)" \
+curl -sS -A "Mozilla/5.0 (compatible; geodata-research/1.0)" \
   -o data/raw/catastro-buildings/A.ES.SDGC.BU.03140.zip \
   "https://www.catastro.hacienda.gob.es/INSPIRE/Buildings/03/03140-VILLENA/A.ES.SDGC.BU.03140.zip"
 ```
@@ -39,7 +39,7 @@ Scriptable 5 m resolution bare-earth elevation model requested via WCS for the A
 ```bash
 mkdir -p data/raw/ign-mdt05
 
-curl -k -sS -A "Mozilla/5.0 (compatible; geodata-research/1.0)" \
+curl -sS -A "Mozilla/5.0 (compatible; geodata-research/1.0)" \
   -o data/raw/ign-mdt05/mdt05-aoi-margin.asc \
   "https://servicios.idee.es/wcs-inspire/mdt?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID=Elevacion25830_5&SUBSET=x(685380,686620)&SUBSET=y(4277380,4278620)&FORMAT=application/asc"
 ```

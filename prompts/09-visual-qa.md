@@ -6,7 +6,7 @@
 | Recommended model | Codex Terra (`gpt-6.1-terra`), effort medium. Second opinion on the screenshots: Gemini 3.8 Flash (`gemini-3.8-flash`), high — see 7.6 |
 | Fallback | Claude Sonnet 5.5 (`claude-sonnet-5-5`), effort medium |
 | Escalate when | You find a geographic error (something drawn where it is not, or a landmark misplaced) → blocker, report to the integrator immediately. |
-| Branch | `agent/wp09-visual-qa` |
+| Branch | `feature/wp09-visual-qa` |
 | Handoff report | `docs/handoffs/WP09-visual-qa.md` |
 
 This prompt is self-contained: you need the repository and this file, nothing else.
@@ -16,7 +16,7 @@ This prompt is self-contained: you need the repository and this file, nothing el
 1. Read `AGENTS.md` completely. It is the canonical rule set; if this prompt conflicts with it,
    stop and report the conflict.
 2. Inspect the Git state: `git status`, `git branch --show-current`, `git log --oneline -5`.
-   You must be on branch `agent/wp09-visual-qa` in a worktree of your own with a clean tree. If not, create
+   You must be on branch `feature/wp09-visual-qa` in a worktree of your own with a clean tree. If not, create
    it with `make worktree WP=09-visual-qa` (from the main checkout) or stop and ask.
 3. Verify every dependency in section 3. If one is missing or its check fails, do not invent a
    replacement: write a handoff with status BLOCKED that names what is missing, and stop.
@@ -184,6 +184,6 @@ known problems, approvals needed, READY / BLOCKED / PARTIAL status and the recom
 - Run every command in section 10 and report the **actual** results, including failures and
   anything you skipped. Do not claim a check passed unless you ran it and saw it pass.
 - Record changed files, important decisions and unresolved issues in the handoff report.
-- Commit on `agent/wp09-visual-qa` with clear messages. Do not push, merge, tag, deploy, open issues or
+- Commit on `feature/wp09-visual-qa` with clear messages. Do not push, merge, tag, deploy, open issues or
   pull requests, or spend money. Do not add AI-attribution trailers to commits.
 - Stop. Do not begin another work package.

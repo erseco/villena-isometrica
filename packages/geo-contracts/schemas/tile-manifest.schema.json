@@ -121,7 +121,7 @@
         "pitchDeg": {
           "type": "number",
           "exclusiveMinimum": 0,
-          "maximum": 90
+          "exclusiveMaximum": 90
         },
         "pixelsPerMetre": {
           "type": "number",
@@ -275,7 +275,7 @@
         "maxResidualM": {
           "type": "number",
           "minimum": 0,
-          "exclusiveMaximum": 0.5
+          "exclusiveMaximum": 0.1
         }
       },
       "required": [
@@ -363,6 +363,32 @@
           "text"
         ]
       }
+    },
+    "crs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "world": {
+          "const": "EPSG:25830"
+        },
+        "geographic": {
+          "const": "EPSG:4326"
+        },
+        "verticalDatum": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "geographic",
+        "verticalDatum",
+        "world"
+      ]
+    },
+    "renderSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "sha256 of the render.json this pyramid was cut from."
     }
   },
   "required": [
@@ -378,6 +404,8 @@
     "geoToWorld",
     "background",
     "pois",
-    "attribution"
+    "attribution",
+    "crs",
+    "renderSha256"
   ]
 }

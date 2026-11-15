@@ -18,7 +18,7 @@ constraint). Ubuntu Server is the second supported platform.
 | Raw downloads (Catastro 4 MB, IGN MDT+MDS 175 MB, OSM < 20 MB) | ≈ 200 MB | |
 | Intermediates + scene | < 300 MB | |
 | Render layers (≈ 11 300 × 6 500 px, 3–4 PNG layers) | < 300 MB | |
-| Tile set (≈ 400 tiles) | 25–60 MB | |
+| Tile set (≈ 425 tiles) | 25–65 MB | |
 | Python env + two `node_modules` + Playwright Chromium | ≈ 1.5 GB | |
 | GIS scene build | minutes, < 4 GB RAM | |
 | Full render | budget ≤ 10 min, ≤ 8 GB RAM | |
@@ -39,7 +39,9 @@ bytes  ≈ tiles · b̄              (b̄ = mean bytes per tile, measured in WP0
 ```
 
 Villena v0.1.0 (`L` = 1000, `s` = 8, φ = 30°, `Δz` ≈ 120 est., `T` = 512):
-11 314 × ≈ 6 500 px → 23 × 13 = 299 base tiles → ≈ 400 tiles. At an assumed 60–150 kB per
+11 314 × ≈ 6 500 px → 23 × 13 = 299 base tiles → ≈ 425 tiles with every level counted exactly
+(the 4/3 rule gives 399). The real margin terrain reaches 662 m, so the measured prediction is
+11 314 × 6 843 px. At an assumed 60–150 kB per
 tile: 24–60 MB, well inside the 250 MB budget. Doubling `s` quadruples everything.
 
 ## GitHub

@@ -44,7 +44,7 @@
         "pitchDeg": {
           "type": "number",
           "exclusiveMinimum": 0,
-          "maximum": 90
+          "exclusiveMaximum": 90
         },
         "pixelsPerMetre": {
           "type": "number",
@@ -181,7 +181,8 @@
           },
           "sha256": {
             "type": "string",
-            "pattern": "^[0-9a-f]{64}$"
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "sha256 of the file. Stable only within one pinned toolchain."
           },
           "scale": {
             "type": "number"
@@ -193,13 +194,56 @@
             "type": "string",
             "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
             "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+          },
+          "pixelSha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "sha256 of the decoded samples (docs/contracts/render.md section 1). Identical across platforms."
           }
         },
         "required": [
           "name",
           "path",
           "encoding",
-          "sha256"
+          "sha256",
+          "pixelSha256"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "name": {
+                  "const": "depth"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "then": {
+              "required": [
+                "scale",
+                "offset"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "name": {
+                  "const": "buildingId"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "then": {
+              "required": [
+                "index"
+              ]
+            }
+          }
         ]
       },
       "contains": {
@@ -239,6 +283,26 @@
         "name",
         "version"
       ]
+    },
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+          "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "description": "The palette file (palette.schema.json) every drawn colour pixel belongs to."
     }
   },
   "required": [
@@ -246,6 +310,7 @@
     "cityId",
     "image",
     "layers",
+    "palette",
     "projection",
     "renderer",
     "sceneSha256",

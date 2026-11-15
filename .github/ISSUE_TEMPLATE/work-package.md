@@ -11,7 +11,7 @@ labels: work-package
 
 **Depends on:**
 
-**Branch:** `agent/wpxx-<slug>`
+**Branch:** `feature/wpxx-<slug>`
 
 **Acceptance criteria:** see the prompt, section 12.
 
