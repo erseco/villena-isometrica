@@ -1,0 +1,82 @@
+{
+ "description": "Ground points on the analytic terrain plane z = 0.10*x + 0.05*y (local metres). forward(E,N,H) must give X,Y within 1e-3 px; terrainPick(X,Y) must give E,N within 0.05 m (limited by the 0.01 m height quantisation); lon/lat come from PROJ and the geoToWorld affine must match them within manifest.geoToWorld.maxResidualM.",
+ "groundPoints": [
+  {
+   "E": 700000.0,
+   "H": 500.0,
+   "N": 4270000.0,
+   "X": 363.0,
+   "Y": 470.0,
+   "lat": 38.55595575,
+   "lon": -0.70472752
+  },
+  {
+   "E": 700064.0,
+   "H": 509.6,
+   "N": 4270064.0,
+   "X": 363.0,
+   "Y": 255.725289,
+   "lat": 38.55651765,
+   "lon": -0.70397524
+  },
+  {
+   "E": 700100.0,
+   "H": 511.0,
+   "N": 4270020.0,
+   "X": 589.27417,
+   "Y": 262.189255,
+   "lat": 38.55611334,
+   "lon": -0.70357501
+  },
+  {
+   "E": 700020.0,
+   "H": 507.0,
+   "N": 4270100.0,
+   "X": 136.72583,
+   "Y": 276.045661,
+   "lat": 38.55685173,
+   "lon": -0.70446951
+  },
+  {
+   "E": 700127.0,
+   "H": 519.05,
+   "N": 4270127.0,
+   "X": 363.0,
+   "Y": 44.798619,
+   "lat": 38.55707078,
+   "lon": -0.7032347
+  },
+  {
+   "E": 700033.3,
+   "H": 507.215,
+   "N": 4270077.7,
+   "X": 237.417836,
+   "Y": 288.028801,
+   "lat": 38.55664793,
+   "lon": -0.70432338
+  }
+ ],
+ "referencePlane": {
+  "cases": [
+   {
+    "E": 700102.000153,
+    "N": 4270230.340034,
+    "X": 0,
+    "Y": 0
+   },
+   {
+    "E": 700081.140503,
+    "N": 4270081.140503,
+    "X": 363.0,
+    "Y": 240.5
+   },
+   {
+    "E": 700060.280853,
+    "N": 4269931.940972,
+    "X": 726,
+    "Y": 481
+   }
+  ],
+  "description": "Reference-plane inverse (zr = 0) of pixel (X, Y), closed form."
+ }
+}

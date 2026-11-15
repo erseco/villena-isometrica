@@ -1,0 +1,4 @@
+# Project defaults for Codex CLI. Loaded only when this project is trusted.
+# Per-task model and effort come from the task prompt: `codex -m <id> -c model_reasoning_effort="<level>"`.
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"

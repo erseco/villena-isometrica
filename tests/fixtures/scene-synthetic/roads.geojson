@@ -1,0 +1,57 @@
+{
+ "features": [
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      699992.0,
+      4270064.0
+     ],
+     [
+      700136.0,
+      4270064.0
+     ]
+    ],
+    "type": "LineString"
+   },
+   "properties": {
+    "class": "residential",
+    "id": "syn-road-1",
+    "layer": 0,
+    "name": "Calle Mayor",
+    "widthM": 8.0,
+    "widthSource": "class-default"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      700056.0,
+      4270064.0
+     ],
+     [
+      700056.0,
+      4270110.0
+     ],
+     [
+      700080.0,
+      4270120.0
+     ]
+    ],
+    "type": "LineString"
+   },
+   "properties": {
+    "class": "pedestrian",
+    "id": "syn-road-2",
+    "layer": 0,
+    "name": "Subida al Castillo",
+    "widthM": 3.0,
+    "widthSource": "tag"
+   },
+   "type": "Feature"
+  }
+ ],
+ "type": "FeatureCollection"
+}

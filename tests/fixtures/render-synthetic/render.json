@@ -1,0 +1,65 @@
+{
+ "background": "#1b2632",
+ "cityId": "planeville",
+ "image": {
+  "height": 481,
+  "width": 726
+ },
+ "layers": [
+  {
+   "encoding": "rgba8-png",
+   "name": "color",
+   "path": "color.png",
+   "sha256": "cbd5dd81cbe64fe84cb028ed6bde98c1080d8d2fe571556883a4d14767192434"
+  },
+  {
+   "encoding": "index8-png",
+   "name": "class",
+   "path": "class.png",
+   "sha256": "dcc2bef0cfca760d1ce1f9149836e6290b4b27408fad808e7152d1c5603d8709"
+  },
+  {
+   "encoding": "rgb24-id-png",
+   "index": "buildingId.json",
+   "name": "buildingId",
+   "path": "buildingId.png",
+   "sha256": "1b1a786334482e791ce827709eb0b497020999cec0a4f50e8062a221c1065464"
+  }
+ ],
+ "projection": {
+  "headingDeg": 45.0,
+  "matrix": [
+   [
+    2.8284271247461903,
+    -2.82842712474619,
+    0.0
+   ],
+   [
+    -1.4142135623730947,
+    -1.414213562373095,
+    -3.464101615137755
+   ]
+  ],
+  "origin": {
+   "E0": 700000.0,
+   "H0": 500.0,
+   "N0": 4270000.0
+  },
+  "pitchDeg": 30.0,
+  "pixelsPerMetre": 4.0,
+  "translation": [
+   363,
+   470
+  ]
+ },
+ "renderer": {
+  "name": "make_fixtures",
+  "version": "1"
+ },
+ "sceneSha256": "c698c38c6d28c8483dd2ad94d67fa9048448a5f773897453a0467fdc098b860e",
+ "schemaVersion": "1.0",
+ "zRange": {
+  "zMax": 31,
+  "zMin": -3
+ }
+}

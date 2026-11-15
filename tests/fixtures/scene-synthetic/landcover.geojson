@@ -1,0 +1,75 @@
+{
+ "features": [
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       700044.0,
+       4270072.0
+      ],
+      [
+       700068.0,
+       4270072.0
+      ],
+      [
+       700068.0,
+       4270100.0
+      ],
+      [
+       700044.0,
+       4270100.0
+      ],
+      [
+       700044.0,
+       4270072.0
+      ]
+     ]
+    ],
+    "type": "Polygon"
+   },
+   "properties": {
+    "class": "park",
+    "id": "syn-lc-1",
+    "name": "Jardín"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       700104.0,
+       4270100.0
+      ],
+      [
+       700136.0,
+       4270100.0
+      ],
+      [
+       700136.0,
+       4270136.0
+      ],
+      [
+       700104.0,
+       4270136.0
+      ],
+      [
+       700104.0,
+       4270100.0
+      ]
+     ]
+    ],
+    "type": "Polygon"
+   },
+   "properties": {
+    "class": "bare-rock",
+    "id": "syn-lc-2",
+    "name": null
+   },
+   "type": "Feature"
+  }
+ ],
+ "type": "FeatureCollection"
+}

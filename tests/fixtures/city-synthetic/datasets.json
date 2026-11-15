@@ -1,0 +1,31 @@
+{
+ "cityId": "planeville",
+ "datasets": [
+  {
+   "access": "direct",
+   "acquisitionDate": "n/a",
+   "coverage": "AOI",
+   "crs": "EPSG:25830",
+   "id": "synthetic",
+   "license": {
+    "attribution": "none required",
+    "name": "CC0-1.0",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+   },
+   "localPath": "scene-synthetic",
+   "name": "Planeville",
+   "provider": "this repository",
+   "redistribution": {
+    "derivatives": true,
+    "raw": true
+   },
+   "resolution": "exact",
+   "retrievedAt": null,
+   "sha256": null,
+   "sizeBytes": null,
+   "url": "https://example.invalid/",
+   "version": "1"
+  }
+ ],
+ "schemaVersion": "1.0"
+}

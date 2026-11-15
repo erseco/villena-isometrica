@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://villena-isometrica.invalid/schemas/poi.schema.json",
+  "title": "POI and search index (published, viewer input)",
+  "description": "X, Y are the forward projection of (E, N, H); H is the height of the marker anchor (terrain, or roof for structures).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+$",
+      "description": "Contract version MAJOR.MINOR. Consumers reject an unknown MAJOR and ignore nothing: MINOR bumps only add optional fields."
+    },
+    "cityId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "pois": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "altNames": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "kind": {
+            "enum": [
+              "landmark",
+              "church",
+              "museum",
+              "square",
+              "street",
+              "transport",
+              "civic",
+              "park",
+              "other"
+            ]
+          },
+          "lat": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lon": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "E": {
+            "type": "number"
+          },
+          "N": {
+            "type": "number"
+          },
+          "H": {
+            "type": "number"
+          },
+          "X": {
+            "type": "number"
+          },
+          "Y": {
+            "type": "number"
+          },
+          "imageBounds": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 4,
+            "description": "[minX, minY, maxX, maxY] in master-image pixels, for fitting streets and large features."
+          },
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "dataset": {
+                "type": "string",
+                "minLength": 1
+              },
+              "ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "dataset",
+              "ref"
+            ],
+            "description": "Where the position comes from, e.g. dataset 'osm', ref 'way/123'. Mandatory: no unsourced POIs."
+          },
+          "worldBounds": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 4,
+            "description": "[minE, minN, maxE, maxN]. Scene-side only: the tile exporter converts it to imageBounds (projecting the four corners at height H) and drops it from the published file."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "lat",
+          "lon",
+          "E",
+          "N",
+          "H",
+          "X",
+          "Y",
+          "source"
+        ]
+      }
+    }
+  },
+  "required": [
+    "cityId",
+    "pois",
+    "schemaVersion"
+  ]
+}

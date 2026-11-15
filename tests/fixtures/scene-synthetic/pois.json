@@ -1,0 +1,85 @@
+{
+ "cityId": "planeville",
+ "pois": [
+  {
+   "E": 700088.0,
+   "H": 525.2,
+   "N": 4270088.0,
+   "altNames": [
+    "Castillo"
+   ],
+   "id": "keep",
+   "kind": "landmark",
+   "lat": 38.5567284,
+   "lon": -0.7036931,
+   "name": "Torre del Homenaje",
+   "source": {
+    "dataset": "synthetic",
+    "ref": "syn-004"
+   }
+  },
+  {
+   "E": 700086.0,
+   "H": 517.6,
+   "N": 4270030.0,
+   "id": "church",
+   "kind": "church",
+   "lat": 38.5562065,
+   "lon": -0.7037327,
+   "name": "Iglesia de San Sintético",
+   "source": {
+    "dataset": "synthetic",
+    "ref": "syn-006"
+   }
+  },
+  {
+   "E": 700056.0,
+   "H": 509.9,
+   "N": 4270086.0,
+   "id": "garden",
+   "kind": "park",
+   "lat": 38.5567176,
+   "lon": -0.7040607,
+   "name": "Jardín",
+   "source": {
+    "dataset": "synthetic",
+    "ref": "syn-lc-1"
+   }
+  },
+  {
+   "E": 700064.0,
+   "H": 509.6,
+   "N": 4270064.0,
+   "id": "calle-mayor",
+   "kind": "street",
+   "lat": 38.5565177,
+   "lon": -0.7039752,
+   "name": "Calle Mayor",
+   "source": {
+    "dataset": "synthetic",
+    "ref": "syn-road-1"
+   },
+   "worldBounds": [
+    700000.0,
+    4270060.0,
+    700128.0,
+    4270068.0
+   ]
+  },
+  {
+   "E": 700000.0,
+   "H": 500.0,
+   "N": 4270000.0,
+   "id": "sw-corner",
+   "kind": "other",
+   "lat": 38.5559557,
+   "lon": -0.7047275,
+   "name": "Esquina suroeste",
+   "source": {
+    "dataset": "synthetic",
+    "ref": "aoi"
+   }
+  }
+ ],
+ "schemaVersion": "1.0"
+}

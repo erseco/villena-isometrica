@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://villena-isometrica.invalid/schemas/generation-job.schema.json",
+  "title": "Generation job and provenance record (optional AI pipeline)",
+  "description": "One file per region. An output is only substituted into a published style after an attempt has decision 'approved' with a human reviewer.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+$",
+      "description": "Contract version MAJOR.MINOR. Consumers reject an unknown MAJOR and ignore nothing: MINOR bumps only add optional fields."
+    },
+    "jobId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cityId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "height",
+        "width",
+        "x",
+        "y"
+      ],
+      "description": "Rectangle in master-image pixels."
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "render": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+              "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ]
+        },
+        "depth": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+              "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ]
+        },
+        "classMask": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+              "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ]
+        },
+        "buildingIdMask": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+              "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "path",
+            "sha256"
+          ]
+        },
+        "styleRefs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+                "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "path",
+              "sha256"
+            ]
+          }
+        },
+        "neighbours": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "side": {
+                "enum": [
+                  "n",
+                  "ne",
+                  "e",
+                  "se",
+                  "s",
+                  "sw",
+                  "w",
+                  "nw"
+                ]
+              },
+              "path": {
+                "type": "string",
+                "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+                "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "path",
+              "sha256",
+              "side"
+            ]
+          }
+        }
+      },
+      "required": [
+        "render"
+      ]
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modelId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "params": {
+          "type": "object",
+          "description": "Provider-specific: steps, guidance, scheduler, LoRAs..."
+        }
+      },
+      "required": [
+        "provider",
+        "modelId",
+        "revision"
+      ]
+    },
+    "prompt": {
+      "type": "string"
+    },
+    "negativePrompt": {
+      "type": "string"
+    },
+    "attempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "seed": {
+            "type": "integer"
+          },
+          "seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "output": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+                "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "path",
+              "sha256"
+            ]
+          },
+          "costEur": {
+            "type": "number",
+            "minimum": 0
+          },
+          "decision": {
+            "enum": [
+              "pending",
+              "rejected-auto",
+              "rejected-human",
+              "approved"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object"
+          },
+          "reviewer": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "seed",
+          "decision"
+        ]
+      }
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "generated",
+        "approved",
+        "abandoned"
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "cityId",
+    "region",
+    "inputs",
+    "model",
+    "prompt",
+    "attempts",
+    "status"
+  ]
+}

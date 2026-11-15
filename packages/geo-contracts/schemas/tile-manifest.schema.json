@@ -1,0 +1,383 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://villena-isometrica.invalid/schemas/tile-manifest.schema.json",
+  "title": "Tile manifest (published, viewer input)",
+  "description": "heightGrid: H = offset + scale * value. When absent the viewer uses reference-plane picking (projection.md 5.1) and flags positions as approximate.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+$",
+      "description": "Contract version MAJOR.MINOR. Consumers reject an unknown MAJOR and ignore nothing: MINOR bumps only add optional fields."
+    },
+    "cityId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "release": {
+      "type": "string",
+      "minLength": 1
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "height",
+        "width"
+      ]
+    },
+    "tiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "layout": {
+          "const": "dzi"
+        },
+        "tileSize": {
+          "type": "integer",
+          "minimum": 64
+        },
+        "tileOverlap": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minLevel": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxLevel": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "layout",
+        "maxLevel",
+        "minLevel",
+        "tileOverlap",
+        "tileSize"
+      ]
+    },
+    "styles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tilesBase": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Directory holding the pyramid: relative to this manifest, or an absolute https URL (CDN migration path)."
+          },
+          "format": {
+            "enum": [
+              "png",
+              "webp"
+            ]
+          }
+        },
+        "required": [
+          "format",
+          "id",
+          "label",
+          "tilesBase"
+        ]
+      },
+      "description": "First entry is the default (procedural baseline). All styles share geometry and pyramid layout."
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "headingDeg": {
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMaximum": 360
+        },
+        "pitchDeg": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 90
+        },
+        "pixelsPerMetre": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "origin": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "E0": {
+              "type": "number"
+            },
+            "N0": {
+              "type": "number"
+            },
+            "H0": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "E0",
+            "H0",
+            "N0"
+          ],
+          "description": "Local-frame origin, see docs/contracts/projection.md section 1."
+        },
+        "matrix": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "items": false,
+              "minItems": 3
+            },
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "items": false,
+              "minItems": 3
+            }
+          ],
+          "items": false,
+          "minItems": 2
+        },
+        "translation": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "items": false,
+          "minItems": 2
+        }
+      },
+      "required": [
+        "headingDeg",
+        "matrix",
+        "origin",
+        "pitchDeg",
+        "pixelsPerMetre",
+        "translation"
+      ],
+      "description": "docs/contracts/projection.md section 3. matrix/translation are authoritative for consumers."
+    },
+    "zRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "zMin": {
+          "type": "number"
+        },
+        "zMax": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "zMax",
+        "zMin"
+      ],
+      "description": "Local z extent of the render prism (metres relative to H0)."
+    },
+    "geoToWorld": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "matrix": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "items": false,
+              "minItems": 3
+            },
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "items": false,
+              "minItems": 3
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "description": "[E, N]^T = matrix * [lon, lat, 1]^T"
+        },
+        "maxResidualM": {
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMaximum": 0.5
+        }
+      },
+      "required": [
+        "matrix",
+        "maxResidualM"
+      ]
+    },
+    "heightGrid": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+          "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "cellSize": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "westE": {
+          "type": "number"
+        },
+        "northN": {
+          "type": "number"
+        },
+        "dtype": {
+          "const": "uint16-le"
+        },
+        "scale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "offset": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "cellSize",
+        "dtype",
+        "height",
+        "northN",
+        "offset",
+        "path",
+        "scale",
+        "westE",
+        "width"
+      ],
+      "description": "Regular grid, row-major, first row = northernmost, first sample = north-west. Samples are at cell centres: sample (col,row) is at E = westE + (col+0.5)*cellSize, N = northN - (row+0.5)*cellSize."
+    },
+    "background": {
+      "type": "string",
+      "pattern": "^#[0-9a-f]{6}$"
+    },
+    "pois": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+      "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+    },
+    "attribution": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "cityId",
+    "name",
+    "release",
+    "image",
+    "tiles",
+    "styles",
+    "projection",
+    "zRange",
+    "geoToWorld",
+    "background",
+    "pois",
+    "attribution"
+  ]
+}

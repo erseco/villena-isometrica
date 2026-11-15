@@ -1,0 +1,257 @@
+{
+ "features": [
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       700016.0,
+       4270016.0
+      ],
+      [
+       700028.0,
+       4270016.0
+      ],
+      [
+       700028.0,
+       4270028.0
+      ],
+      [
+       700016.0,
+       4270028.0
+      ],
+      [
+       700016.0,
+       4270016.0
+      ]
+     ]
+    ],
+    "type": "Polygon"
+   },
+   "properties": {
+    "baseH": 502.4,
+    "buildingId": "syn-001",
+    "floors": 2,
+    "heightM": 6.0,
+    "heightSource": "floors",
+    "id": "syn-001_1",
+    "landmark": null,
+    "roof": "unknown",
+    "roofSource": "none",
+    "use": "residential"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       700032.0,
+       4270016.0
+      ],
+      [
+       700040.0,
+       4270016.0
+      ],
+      [
+       700040.0,
+       4270030.0
+      ],
+      [
+       700032.0,
+       4270030.0
+      ],
+      [
+       700032.0,
+       4270016.0
+      ]
+     ]
+    ],
+    "type": "Polygon"
+   },
+   "properties": {
+    "baseH": 504.0,
+    "buildingId": "syn-002",
+    "floors": 3,
+    "heightM": 9.0,
+    "heightSource": "floors",
+    "id": "syn-002_1",
+    "landmark": null,
+    "roof": "pitched",
+    "roofSource": "tag",
+    "use": "residential"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       700016.0,
+       4270076.0
+      ],
+      [
+       700040.0,
+       4270076.0
+      ],
+      [
+       700040.0,
+       4270088.0
+      ],
+      [
+       700016.0,
+       4270088.0
+      ],
+      [
+       700016.0,
+       4270076.0
+      ]
+     ]
+    ],
+    "type": "Polygon"
+   },
+   "properties": {
+    "baseH": 505.4,
+    "buildingId": "syn-003",
+    "floors": 2,
+    "heightM": 6.0,
+    "heightSource": "floors",
+    "id": "syn-003_1",
+    "landmark": null,
+    "roof": "flat",
+    "roofSource": "tag",
+    "use": "residential"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       700080.0,
+       4270080.0
+      ],
+      [
+       700096.0,
+       4270080.0
+      ],
+      [
+       700096.0,
+       4270096.0
+      ],
+      [
+       700080.0,
+       4270096.0
+      ],
+      [
+       700080.0,
+       4270080.0
+      ]
+     ]
+    ],
+    "type": "Polygon"
+   },
+   "properties": {
+    "baseH": 512.0,
+    "buildingId": "syn-004",
+    "floors": null,
+    "heightM": 12.0,
+    "heightSource": "surface-model",
+    "id": "syn-004_1",
+    "landmark": "keep",
+    "roof": "unknown",
+    "roofSource": "none",
+    "use": "fortification"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       700096.0,
+       4270084.0
+      ],
+      [
+       700104.0,
+       4270084.0
+      ],
+      [
+       700104.0,
+       4270092.0
+      ],
+      [
+       700096.0,
+       4270092.0
+      ],
+      [
+       700096.0,
+       4270084.0
+      ]
+     ]
+    ],
+    "type": "Polygon"
+   },
+   "properties": {
+    "baseH": 513.8,
+    "buildingId": "syn-004",
+    "floors": null,
+    "heightM": 5.0,
+    "heightSource": "default",
+    "id": "syn-005_1",
+    "landmark": null,
+    "roof": "unknown",
+    "roofSource": "none",
+    "use": "fortification"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       700072.0,
+       4270020.0
+      ],
+      [
+       700100.0,
+       4270020.0
+      ],
+      [
+       700100.0,
+       4270040.0
+      ],
+      [
+       700072.0,
+       4270040.0
+      ],
+      [
+       700072.0,
+       4270020.0
+      ]
+     ]
+    ],
+    "type": "Polygon"
+   },
+   "properties": {
+    "baseH": 508.2,
+    "buildingId": "syn-006",
+    "floors": null,
+    "heightM": 7.5,
+    "heightSource": "surface-model",
+    "id": "syn-006_1",
+    "landmark": "church",
+    "roof": "pitched",
+    "roofSource": "tag",
+    "use": "religious"
+   },
+   "type": "Feature"
+  }
+ ],
+ "type": "FeatureCollection"
+}

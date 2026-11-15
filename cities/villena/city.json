@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0",
+  "id": "villena",
+  "name": "Villena",
+  "crs": {
+    "world": "EPSG:25830",
+    "geographic": "EPSG:4326",
+    "verticalDatum": "Orthometric heights, EGM08 geoid, as delivered by IGN MDT50cm-cob3 (exact realisation to be confirmed by WP01)"
+  },
+  "aoi": {
+    "bounds": [685500, 4277500, 686500, 4278500],
+    "marginM": 120
+  },
+  "origin": { "E0": 685500, "N0": 4277500, "H0": 500 },
+  "camera": { "headingDeg": 45, "pitchDeg": 30, "pixelsPerMetre": 8 },
+  "tiles": { "tileSize": 512, "tileOverlap": 1, "format": "png" },
+  "datasets": "datasets.json",
+  "attribution": [
+    { "text": "Obra derivada de MDT50cm-cob3 2022-2025 y MDS50cm-cob3 2022-2025 CC-BY 4.0 scne.es", "url": "https://www.scne.es/" },
+    { "text": "Fuente de edificios: Dirección General del Catastro (fecha de acceso indicada en los créditos)", "url": "https://www.catastro.hacienda.gob.es/" },
+    { "text": "© OpenStreetMap contributors (ODbL)", "url": "https://www.openstreetmap.org/copyright" }
+  ]
+}

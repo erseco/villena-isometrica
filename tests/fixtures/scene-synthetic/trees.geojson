@@ -1,0 +1,53 @@
+{
+ "features": [
+  {
+   "geometry": {
+    "coordinates": [
+     700048.0,
+     4270076.0
+    ],
+    "type": "Point"
+   },
+   "properties": {
+    "crownRadiusM": 2.5,
+    "heightM": 6.0,
+    "id": "syn-tree-1",
+    "source": "mapped"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     700056.0,
+     4270084.0
+    ],
+    "type": "Point"
+   },
+   "properties": {
+    "crownRadiusM": 2.5,
+    "heightM": 6.0,
+    "id": "syn-tree-2",
+    "source": "mapped"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     700064.0,
+     4270096.0
+    ],
+    "type": "Point"
+   },
+   "properties": {
+    "crownRadiusM": 2.5,
+    "heightM": 6.0,
+    "id": "syn-tree-3",
+    "source": "mapped"
+   },
+   "type": "Feature"
+  }
+ ],
+ "type": "FeatureCollection"
+}

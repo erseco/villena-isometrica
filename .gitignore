@@ -1,0 +1,37 @@
+# Raw and intermediate geodata, renders, models — never committed (see data/README.md)
+/data/*
+!/data/README.md
+/build/
+/dist/
+*.laz
+*.las
+*.copc.laz
+*.safetensors
+*.ckpt
+*.gguf
+
+# JS
+node_modules/
+apps/viewer/dist/
+apps/viewer/public/tiles/
+playwright-report/
+test-results/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Local config and secrets
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+.claude/worktrees/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://villena-isometrica.invalid/schemas/city-config.schema.json",
+  "title": "City configuration (hand-written input, cities/<id>/city.json)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+$",
+      "description": "Contract version MAJOR.MINOR. Consumers reject an unknown MAJOR and ignore nothing: MINOR bumps only add optional fields."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "crs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "world": {
+          "const": "EPSG:25830"
+        },
+        "geographic": {
+          "const": "EPSG:4326"
+        },
+        "verticalDatum": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "geographic",
+        "verticalDatum",
+        "world"
+      ]
+    },
+    "aoi": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bounds": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "items": false,
+          "minItems": 4,
+          "description": "[minE, minN, maxE, maxN] in the world CRS, metres."
+        },
+        "marginM": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Extra context around the AOI that the scene must contain so that the AOI edge renders correctly."
+        }
+      },
+      "required": [
+        "bounds",
+        "marginM"
+      ]
+    },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "E0": {
+          "type": "number"
+        },
+        "N0": {
+          "type": "number"
+        },
+        "H0": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "E0",
+        "H0",
+        "N0"
+      ],
+      "description": "Local-frame origin, see docs/contracts/projection.md section 1."
+    },
+    "camera": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "headingDeg": {
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMaximum": 360
+        },
+        "pitchDeg": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 90
+        },
+        "pixelsPerMetre": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "headingDeg",
+        "pitchDeg",
+        "pixelsPerMetre"
+      ]
+    },
+    "tiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tileSize": {
+          "type": "integer",
+          "minimum": 64
+        },
+        "tileOverlap": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "format": {
+          "enum": [
+            "png",
+            "webp"
+          ]
+        }
+      },
+      "required": [
+        "format",
+        "tileOverlap",
+        "tileSize"
+      ]
+    },
+    "datasets": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+      "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+    },
+    "attribution": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    }
+  },
+  "required": [
+    "aoi",
+    "attribution",
+    "camera",
+    "crs",
+    "datasets",
+    "id",
+    "name",
+    "origin",
+    "schemaVersion",
+    "tiles"
+  ]
+}

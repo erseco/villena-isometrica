@@ -1,0 +1,88 @@
+{
+ "attribution": [
+  {
+   "text": "Synthetic fixture data — not a real place"
+  }
+ ],
+ "background": "#1b2632",
+ "cityId": "planeville",
+ "geoToWorld": {
+  "matrix": [
+   [
+    87145.45111679027,
+    -2773.518890407958,
+    868349.4699469032
+   ],
+   [
+    2177.812922881742,
+    110982.69859595931,
+    -7509.2512876736
+   ]
+  ],
+  "maxResidualM": 0.000536
+ },
+ "heightGrid": {
+  "cellSize": 4.0,
+  "dtype": "uint16-le",
+  "height": 36,
+  "northN": 4270136.0,
+  "offset": 498.8,
+  "path": "height.u16",
+  "scale": 0.01,
+  "westE": 699992.0,
+  "width": 36
+ },
+ "image": {
+  "height": 481,
+  "width": 726
+ },
+ "name": "Planeville (synthetic)",
+ "pois": "pois.json",
+ "projection": {
+  "headingDeg": 45.0,
+  "matrix": [
+   [
+    2.8284271247461903,
+    -2.82842712474619,
+    0.0
+   ],
+   [
+    -1.4142135623730947,
+    -1.414213562373095,
+    -3.464101615137755
+   ]
+  ],
+  "origin": {
+   "E0": 700000.0,
+   "H0": 500.0,
+   "N0": 4270000.0
+  },
+  "pitchDeg": 30.0,
+  "pixelsPerMetre": 4.0,
+  "translation": [
+   363,
+   470
+  ]
+ },
+ "release": "fixture-1",
+ "schemaVersion": "1.0",
+ "styles": [
+  {
+   "format": "png",
+   "id": "procedural",
+   "label": "Procedural",
+   "tilesBase": "procedural"
+  }
+ ],
+ "tiles": {
+  "layout": "dzi",
+  "maxLevel": 10,
+  "minLevel": 0,
+  "tileOverlap": 1,
+  "tileSize": 256
+ },
+ "zRange": {
+  "zMax": 31,
+  "zMin": -3
+ }
+}

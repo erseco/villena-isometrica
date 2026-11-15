@@ -1,0 +1,40 @@
+{
+ "aoi": {
+  "bounds": [
+   700000.0,
+   4270000.0,
+   700128.0,
+   4270128.0
+  ],
+  "marginM": 8.0
+ },
+ "attribution": [
+  {
+   "text": "Synthetic fixture data — not a real place"
+  }
+ ],
+ "camera": {
+  "headingDeg": 45.0,
+  "pitchDeg": 30.0,
+  "pixelsPerMetre": 4.0
+ },
+ "crs": {
+  "geographic": "EPSG:4326",
+  "verticalDatum": "synthetic",
+  "world": "EPSG:25830"
+ },
+ "datasets": "datasets.json",
+ "id": "planeville",
+ "name": "Planeville (synthetic)",
+ "origin": {
+  "E0": 700000.0,
+  "H0": 500.0,
+  "N0": 4270000.0
+ },
+ "schemaVersion": "1.0",
+ "tiles": {
+  "format": "png",
+  "tileOverlap": 1,
+  "tileSize": 256
+ }
+}

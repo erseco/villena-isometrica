@@ -1,0 +1,66 @@
+{
+ "aoi": {
+  "bounds": [
+   700000.0,
+   4270000.0,
+   700128.0,
+   4270128.0
+  ],
+  "marginM": 8.0
+ },
+ "cityId": "planeville",
+ "crs": {
+  "geographic": "EPSG:4326",
+  "verticalDatum": "synthetic",
+  "world": "EPSG:25830"
+ },
+ "layers": {
+  "buildings": {
+   "count": 6,
+   "path": "buildings.geojson",
+   "sha256": "527194ae72c7638cde5617d2862138b267579c9e97664cdede8cce2f0fadf1f7"
+  },
+  "landcover": {
+   "count": 2,
+   "path": "landcover.geojson",
+   "sha256": "4eccc088fe61b3de555860047356cc1a255a8563b9747a7bc326f54f4c8551a4"
+  },
+  "roads": {
+   "count": 2,
+   "path": "roads.geojson",
+   "sha256": "3ee15343c015f27442c235d2d13a3fab2ca841b89580076d214ca86c90485f91"
+  },
+  "trees": {
+   "count": 3,
+   "path": "trees.geojson",
+   "sha256": "7afc58d8a19fd78d24f76d2f937d9099c6d5f5149edb81d6832dfea8c7577861"
+  }
+ },
+ "origin": {
+  "E0": 700000.0,
+  "H0": 500.0,
+  "N0": 4270000.0
+ },
+ "pois": {
+  "count": 5,
+  "path": "pois.json",
+  "sha256": "482d79597d353a532abdd63fd8b9685bcd81eb0a456140bf4ec61dee16c3942d"
+ },
+ "provenance": [],
+ "schemaVersion": "1.0",
+ "terrain": {
+  "cellSize": 2.0,
+  "dtype": "float32-le",
+  "height": 72,
+  "northN": 4270136.0,
+  "path": "terrain.f32",
+  "sha256": "9be55129c55fa1f90ab2aacbe6d4eb7bab388a939bbd98437f5789cb85239f15",
+  "unit": "m",
+  "westE": 699992.0,
+  "width": 72
+ },
+ "zRange": {
+  "zMax": 31,
+  "zMin": -3
+ }
+}

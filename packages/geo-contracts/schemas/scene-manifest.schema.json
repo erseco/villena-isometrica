@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://villena-isometrica.invalid/schemas/scene-manifest.schema.json",
+  "title": "Scene manifest (GIS pipeline output, renderer input). Feature properties: docs/contracts/scene.md",
+  "description": "No timestamps: two runs on the same inputs must produce byte-identical scenes.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+$",
+      "description": "Contract version MAJOR.MINOR. Consumers reject an unknown MAJOR and ignore nothing: MINOR bumps only add optional fields."
+    },
+    "cityId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "crs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "world": {
+          "const": "EPSG:25830"
+        },
+        "geographic": {
+          "const": "EPSG:4326"
+        },
+        "verticalDatum": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "geographic",
+        "verticalDatum",
+        "world"
+      ]
+    },
+    "aoi": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bounds": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "items": false,
+          "minItems": 4,
+          "description": "[minE, minN, maxE, maxN] in the world CRS, metres."
+        },
+        "marginM": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "bounds",
+        "marginM"
+      ]
+    },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "E0": {
+          "type": "number"
+        },
+        "N0": {
+          "type": "number"
+        },
+        "H0": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "E0",
+        "H0",
+        "N0"
+      ],
+      "description": "Local-frame origin, see docs/contracts/projection.md section 1."
+    },
+    "zRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "zMin": {
+          "type": "number"
+        },
+        "zMax": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "zMax",
+        "zMin"
+      ],
+      "description": "Local z extent of the render prism (metres relative to H0)."
+    },
+    "terrain": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+          "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "cellSize": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "westE": {
+          "type": "number"
+        },
+        "northN": {
+          "type": "number"
+        },
+        "dtype": {
+          "const": "float32-le"
+        },
+        "unit": {
+          "const": "m"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "cellSize",
+        "dtype",
+        "height",
+        "northN",
+        "path",
+        "sha256",
+        "unit",
+        "westE",
+        "width"
+      ],
+      "description": "Regular grid, row-major, first row = northernmost, first sample = north-west. Samples are at cell centres: sample (col,row) is at E = westE + (col+0.5)*cellSize, N = northN - (row+0.5)*cellSize."
+    },
+    "layers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "buildings": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+              "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "count",
+            "path",
+            "sha256"
+          ]
+        },
+        "roads": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+              "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "count",
+            "path",
+            "sha256"
+          ]
+        },
+        "landcover": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+              "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "count",
+            "path",
+            "sha256"
+          ]
+        },
+        "trees": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+              "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "count",
+            "path",
+            "sha256"
+          ]
+        }
+      },
+      "required": [
+        "buildings",
+        "roads",
+        "landcover"
+      ]
+    },
+    "pois": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+          "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "count",
+        "path",
+        "sha256"
+      ]
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "datasetId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "datasetId",
+          "sha256"
+        ]
+      }
+    }
+  },
+  "required": [
+    "aoi",
+    "cityId",
+    "crs",
+    "layers",
+    "origin",
+    "pois",
+    "provenance",
+    "schemaVersion",
+    "terrain",
+    "zRange"
+  ]
+}
