@@ -20,7 +20,7 @@ Last updated: 2026-11-15 (WP00 and WP02 merged).
 | WP | Status | Branch / commit | Notes |
 |---|---|---|---|
 | WP00 bootstrap | done, merged | `agent/wp00-bootstrap` @ `ba8ba0c` | `docs/handoffs/WP00-bootstrap.md` |
-| WP01 data verification | in progress (worktree) | `agent/wp01-data-research` | |
+| WP01 data verification | worktree created, no commits yet | `agent/wp01-data-research` | |
 | WP02 architecture review | done, merged; findings open | `agent/wp02-architecture-review` @ `13e0d67` | `docs/handoffs/WP02-architecture-review.md`; R-01 blocks G1 |
 | WP07 tooling, CI/CD | ready to start | | |
 | WP03 GIS pipeline | waiting: G1, WP01, WP07 | | needs the two manual IGN files for a release-quality scene |
