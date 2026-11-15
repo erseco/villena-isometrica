@@ -86,8 +86,8 @@ def detect_trees(surface: buildings.Surface, parts: list[buildings.Part], mapped
     """Canopy peaks of the normalised surface model outside buildings and structures."""
     g = surface.grid
     nd = np.nan_to_num(surface.ndsm, nan=-1.0)
-    blocked = ~geometry_mask([p.geom.buffer(BUILDING_BUFFER) for p in parts], (g.height, g.width), g.transform) \
-        if parts else np.zeros(nd.shape, bool)
+    solid = [(p.footprint or p.geom).buffer(BUILDING_BUFFER) for p in parts]
+    blocked = ~geometry_mask(solid, (g.height, g.width), g.transform) if solid else np.zeros(nd.shape, bool)
     half = CANOPY_WINDOW // 2
     local_max = sliding_window_view(np.pad(nd, half, constant_values=-1.0), (CANOPY_WINDOW, CANOPY_WINDOW)).max(
         axis=(2, 3))

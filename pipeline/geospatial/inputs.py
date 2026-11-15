@@ -153,10 +153,12 @@ def read_raster(path: Path, grid: Grid, resampling: Resampling, declared_crs: st
             if "25830" not in declared_crs:
                 raise PipelineError(f"{path} has no CRS and the manifest does not declare EPSG:25830")
             src_crs = WORLD_CRS
-        elif src.crs.to_epsg() != 25830:
+        elif src.crs.to_epsg() not in (25830, 3042):
             raise PipelineError(f"{path} is in {src.crs}, expected {WORLD_CRS}")
         else:
-            src_crs = src.crs
+            # EPSG:3042 (the CNIG 0.5 m sheets) is the same datum and projection as 25830 with the
+            # authority axis order N,E; raster georeferencing is E,N either way.
+            src_crs = WORLD_CRS
         t = src.transform
         if t.b != 0 or t.d != 0:
             raise PipelineError(f"{path} is rotated; not supported")

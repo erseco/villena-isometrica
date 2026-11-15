@@ -29,7 +29,7 @@ Last updated: 2026-11-15 (WP04, WP05, WP06 merged; phase 2 complete).
 | WP01 data verification | done, merged | `agent/wp01-data-research` @ `9be358d` | Gemini 3.8 Flash. Manifest, acquisition guide, 25 POIs. `curl -k` removed at integration. Handoff quotes head `eeee444`; the real one is `9be358d`. |
 | WP02 architecture review | done, merged; findings closed at G1 | `agent/wp02-architecture-review` @ `13e0d67` | DeepSeek V4 Pro. R-10 rejected as proposed, R-20 deferred to WP08; the rest accepted. |
 | WP07 tooling, CI/CD | done, merged | `feature/wp07-ci-cd` @ `bb2e399` | Codex. CI runs green on GitHub; the deploy workflow has only run its intended early failure. |
-| WP03 GIS pipeline | **merged; real scene fallback-only** | `agent/wp03-gis-pipeline` @ `7095b3d` | Opus 5.5, adapted by the architect after G1. Full mode waits for the two IGN sheets. Cross-provider review owed. |
+| WP03 GIS pipeline | merged; **full-mode scene built** | `agent/wp03-gis-pipeline` @ `7095b3d` | Opus 5.5, adapted by the architect after G1. Full mode waits for the two IGN sheets. Cross-provider review owed. |
 | WP04 render engine | done, merged | `feature/wp04-render-engine` @ `1d5623b` | Opus 5.5; reviewed by Sonnet 5.5 (approve). Software rasteriser in TypeScript (ADR 0006; Three.js spike rejected: output depended on chunk size). Villena fallback scene renders in ≈ 10 s, 3 GB. |
 | WP05 viewer | done, merged | `feature/wp05-frontend` @ `3cde035` | Sonnet 5.5; reviewed by Opus 5.5 (2 blocking findings fixed: `schemaVersion` check, approximate-position flag). 94 kB gzip. |
 | WP06 tile export | done, merged | `feature/wp06-tile-export` @ `6bc35c0` | Opus 5.5; reviewed by Sonnet 5.5 (approve). Indexed PNG, mode kernel. Only run on the synthetic fixture. |
@@ -65,10 +65,8 @@ checksums match the manifest). To build the scene from another checkout, either 
 
 ## Decisions needed from the owner
 
-1. **Download the two IGN sheets** (MDT50cm and MDS50cm, sheet 0845-8-2, ≈ 184 MB) following
-   `cities/villena/ACQUISITION.md` §3, into `data/raw/ign-mdt50cm/` and `data/raw/ign-mds50cm/`.
-   Until then every building height comes from floor counts and the castle enclosure is a 3 m
-   placeholder block.
+1. ~~Download the two IGN sheets~~ — done 2026-11-15 (owner's request, through the browser);
+   checksums pinned in `cities/villena/datasets.json`. `make scene` now runs in full mode.
 2. **Licences**: code is MIT (the owner's `LICENSE`). CC BY 4.0 for artwork, tiles and docs is
    still a proposal.
 3. **Branch prefix**: `feature/` adopted on the strength of the WP07 handoff ("the user's
@@ -86,14 +84,15 @@ checksums match the manifest). To build the scene from another checkout, either 
 
 ## Open risks
 
-- The full-mode height logic (surface model, roof slope, zoning, canopy) has only ever run on
-  synthetic data. The first run with the real IGN sheets is the next real test of WP03.
+- Full mode ran on the real sheets for the first time on 2026-11-15 and needed three fixes
+  (EPSG:3042 tag, pitched-roof eaves, false trees on zoned landmarks). Other thresholds are
+  unreviewed; the result was checked by eye only (castle, Santiago church, overview).
 - The renderer's pixel hashes match between macOS arm64 and an emulated linux/amd64 container;
   native x86-64 is covered by the golden test in CI.
 - The deploy workflow has never run past its tiles-lock guard; the JS job of CI has
   nothing to run yet.
-- Catastro has only the castle's keep; the enclosure and the town walls come from OSM outlines,
-  whose heights depend entirely on the surface model.
+- Catastro has only the castle's keep; the enclosure and the town walls come from OSM outlines
+  with surface-model heights (14 zones kept for the enclosure).
 - Review coverage: WP03 has not been reviewed by a non-Claude model; WP07 and WP01 were reviewed
   by the architect only.
 - The pipeline has run on Linux only through its tests in CI, never on real data.
