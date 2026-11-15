@@ -137,7 +137,7 @@ export function render(
       extra: { offset: dMin, scale: range / 65535 },
     });
   }
-  return { projection: pr, layers, ids: scene.parts.map((p) => p.id) };
+  return { projection: pr, layers, ids: [...scene.parts.map((p) => p.id), ...scene.details.map((d) => d.id)] };
 }
 
 export function sha256(buf: Uint8Array): string {

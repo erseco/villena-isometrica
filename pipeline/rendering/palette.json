@@ -243,9 +243,21 @@
   {
    "hex": "#6e5440",
    "role": "trunk"
+  },
+  {
+   "hex": "#7d8794",
+   "role": "slate-0"
+  },
+  {
+   "hex": "#626b78",
+   "role": "slate-1"
+  },
+  {
+   "hex": "#4a515d",
+   "role": "slate-2"
   }
  ],
  "name": "villena-mediterranean",
  "schemaVersion": "1.0",
- "version": "1"
+ "version": "2"
 }
