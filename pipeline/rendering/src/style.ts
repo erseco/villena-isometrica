@@ -33,6 +33,8 @@ export const CLASS = {
 
 /** Ordered dither amplitude on the light term of round details (softens the band steps). */
 const ROUND_DITHER = 0.06;
+/** Half width of a pilaster on a gable hall's long walls, m. */
+const PILASTER = 0.4;
 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
@@ -120,7 +122,9 @@ export function makeStyler(
     const floors = part.floors ?? Math.max(1, Math.round(part.heightM / 3));
     const base = { floors, floorH: part.heightM / floors, hash: hashStr(part.id), plinth: false };
     const st = partStyle(part, h, base);
-    // Curated material (scene v1.1) replaces the wall colours; the opening layout stays.
+    // Curated material (scene v1.1): stone is coursed masonry without openings (a church or castle
+    // wall, not a house front); plaster and brick replace the wall colours and keep the openings.
+    if (part.material === 'stone') return { ...st, wall: M.stone, family: 'fort', plinth: false };
     return part.material === null ? st : { ...st, wall: MATERIAL[part.material], plinth: false };
   });
 
@@ -212,6 +216,19 @@ export function makeStyler(
     }
   }
 
+  /**
+   * Staggered courses h m high with vertical joints every w m: true on a joint. sa = metres along
+   * the surface, sb = metres up; pxH = one pixel along the surface in metres.
+   */
+  function joint(sa: number, sb: number, h: number, w: number, pxH: number): boolean {
+    const row = Math.floor(sb / h);
+    const off = row % 2 === 0 ? 0 : w / 2;
+    return sb - row * h < pxV || sa + off - Math.floor((sa + off) / w) * w < pxH;
+  }
+
+  /** One pixel along a vertical planar surface with horizontal direction (ux, uy), in metres. */
+  const pxAlong = (ux: number, uy: number) => 1 / (S * Math.max(Math.abs(ux * r[0] + uy * r[1]), 0.3));
+
   function wallColour(si: number, x: number, y: number, z: number): number {
     const s = geo.surfaces[si];
     const part = scene.parts[s.owner];
@@ -220,13 +237,7 @@ export function makeStyler(
     const sb = z - part.baseZ;
     const b = s.band;
     const glass = pick(M.window, b <= 1 ? 0 : 1);
-    if (st.family === 'fort') {
-      const row = Math.floor(sb / 0.6);
-      const off = row % 2 === 0 ? 0 : 0.6;
-      const pxH = 1 / (S * Math.max(Math.abs(s.ux * r[0] + s.uy * r[1]), 0.3));
-      const joint = sb - row * 0.6 < pxV || sa + off - Math.floor((sa + off) / 1.2) * 1.2 < pxH;
-      return pick(st.wall, joint ? b + 1 : b);
-    }
+    if (st.family === 'fort') return pick(st.wall, joint(sa, sb, 0.6, 1.2, pxAlong(s.ux, s.uy)) ? b + 1 : b);
     const fi = Math.floor(sb / st.floorH);
     const within = sb - fi * st.floorH;
     const bayW = st.family === 'church' ? 5 : st.family === 'barn' ? 6 : st.family === 'house' ? 3 : 3.5;
@@ -255,6 +266,7 @@ export function makeStyler(
         }
       }
     }
+    if (part.material === 'brick') return pick(st.wall, joint(sa, sb, 0.5, 1, pxAlong(s.ux, s.uy)) ? b + 1 : b);
     return pick(st.wall, st.plinth && sb < 0.45 ? b + 1 : b);
   }
 
@@ -275,16 +287,18 @@ export function makeStyler(
     return Math.sqrt(best);
   }
 
+  /** Terracotta courses 0.45 m deep parallel to the eave: t = metres up from it, along = along it. */
+  function tiles(m: Shades, b: number, t: number, along: number): number {
+    const row = Math.floor(t / 0.45);
+    if (t - row * 0.45 < 0.13) return pick(m, b + 1);
+    return pick(m, (mix(mix(5, row), Math.floor(along / 0.3)) & 15) === 0 ? b - 1 : b);
+  }
+
   function roofColour(si: number, x: number, y: number): number {
     const s = geo.surfaces[si];
     const b = s.band;
-    if (s.tex === RoofTex.Tile) {
-      const t = s.ux * (y - s.ay) - s.uy * (x - s.ax);
-      const along = (x - s.ax) * s.ux + (y - s.ay) * s.uy;
-      const row = Math.floor(t / 0.45);
-      if (t - row * 0.45 < 0.13) return pick(M.terracotta, b + 1);
-      return pick(M.terracotta, (mix(mix(5, row), Math.floor(along / 0.3)) & 15) === 0 ? b - 1 : b);
-    }
+    if (s.tex === RoofTex.Tile)
+      return tiles(M.terracotta, b, s.ux * (y - s.ay) - s.uy * (x - s.ax), (x - s.ax) * s.ux + (y - s.ay) * s.uy);
     const fx = x - Math.floor(x);
     const fy = y - Math.floor(y);
     const joint = fx < 0.07 || fy < 0.07;
@@ -305,13 +319,49 @@ export function makeStyler(
     return pick(m, Math.min(bb, 2) + (leaf >= 12 ? 1 : 0));
   }
 
-  /** Profile radius of a detail at height zr above its base (m). */
+  /** Profile radius of a cylinder or cone at height zr above its base (m). */
   function radiusAt(det: Detail, zr: number): number {
-    if (det.kind === 'cylinder') return det.radiusM;
-    if (det.kind === 'cone')
-      return det.radiusM + ((det.topRadiusM - det.radiusM) * Math.min(Math.max(zr, 0), det.heightM)) / det.heightM;
-    const q = zr / det.heightM;
-    return det.radiusM * Math.sqrt(Math.max(1 - q * q, 0));
+    if (det.kind !== 'cone') return det.radiusM;
+    return det.radiusM + ((det.topRadiusM - det.radiusM) * Math.min(Math.max(zr, 0), det.heightM)) / det.heightM;
+  }
+
+  /** Gable hall: masonry walls with pilasters and slit windows on the long sides; tiled slopes. */
+  function gableColour(si: number, x: number, y: number, zr: number): number {
+    const s = geo.surfaces[si];
+    const det = scene.details[s.owner];
+    const b = s.band;
+    const along = (x - s.ax) * s.ux + (y - s.ay) * s.uy;
+    if (s.kind === Kind.DetailTop) {
+      const m = MATERIAL[det.roofMaterial ?? 'tile'];
+      const t = s.ux * (y - s.ay) - s.uy * (x - s.ax);
+      if (det.roofMaterial === 'tile') return tiles(m, b, t, along);
+      if (det.roofMaterial === 'metal') return pick(m, along - Math.floor(along / 1.2) * 1.2 < 1 / S ? b + 1 : b);
+      return pick(m, joint(along, t, 0.6, 1, 1 / S) ? b + 1 : b);
+    }
+    const m = MATERIAL[det.material];
+    const pxH = pxAlong(s.ux, s.uy);
+    if (s.edge === 0) {
+      // Long wall: bays of about 6 m between pilasters, one tall narrow arched slit per bay.
+      const nb = Math.max(1, Math.round(s.len / 6));
+      const bw = s.len / nb;
+      const db = along - Math.round(along / bw) * bw;
+      if (db > -PILASTER && db < PILASTER && zr < det.wallHeightM - 0.6)
+        return pick(m, db >= PILASTER - pxH ? b + 1 : b);
+      const dc = along - (Math.floor(along / bw) + 0.5) * bw;
+      const top = det.wallHeightM * 0.8;
+      const hw = 0.4;
+      const yc = top - hw;
+      if (
+        dc > -hw &&
+        dc < hw &&
+        zr >= det.wallHeightM * 0.4 &&
+        (zr <= yc || dc * dc + (zr - yc) * (zr - yc) <= hw * hw)
+      )
+        return pick(M.window, 1);
+    }
+    if (det.material === 'stone') return pick(m, joint(along, zr, 0.6, 1.2, pxH) ? b + 1 : b);
+    if (det.material === 'brick') return pick(m, joint(along, zr, 0.5, 1, pxH) ? b + 1 : b);
+    return pick(m, b);
   }
 
   function detailColour(si: number, x: number, y: number, z: number, X: number, Y: number): number {
@@ -319,6 +369,7 @@ export function makeStyler(
     const det = scene.details[s.owner];
     const m = MATERIAL[det.material];
     const zr = z - det.baseZ;
+    if (det.kind === 'gable') return gableColour(si, x, y, zr);
     const dx = x - det.x;
     const dy = y - det.y;
     let b = s.band;
@@ -348,33 +399,72 @@ export function makeStyler(
         (nx * SUN[0] + ny * SUN[1] + nz * SUN[2]) / nl + (BAYER[(X & 3) + 4 * (Y & 3)] / 16 - 0.47) * ROUND_DITHER;
       b = l >= 0.85 ? 0 : l >= 0.6 ? 1 : l >= 0.35 ? 2 : 3;
     }
-    // Texture: u = metres around the solid at this height, zr = metres above its base.
-    const rz = radiusAt(det, zr);
+    // Texture: a = fraction of a turn around the axis (anchored to the facets, so to the angle),
+    // u = metres around the solid at this height, zr = metres above its base.
+    // On a dome the facets sag well inside the ellipsoid near the crown: use the pixel's own
+    // distance from the axis there.
+    const rz = det.kind === 'dome' ? Math.sqrt(dx * dx + dy * dy) : radiusAt(det, zr);
     const t = rz > 0 ? Math.min(Math.max((dx * s.ux + dy * s.uy) / (2 * f.hc * rz) + 0.5, 0), 0.999) : 0.5;
-    const u = ((f.k + t) / f.n) * rz * (det.sides === 4 ? 8 : 2 * Math.PI);
+    const a = (f.k + t) / f.n;
+    const turn = rz * (det.sides === 4 ? 8 : 2 * Math.PI);
+    const u = a * turn;
     const pxH = 1 / S;
-    const course = (h: number, w: number) => {
-      const row = Math.floor(zr / h);
-      const off = row % 2 === 0 ? 0 : w / 2;
-      return zr - row * h < pxV || u + off - Math.floor((u + off) / w) * w < pxH;
-    };
+    /** True within one pixel after each of n equal divisions of the turn. */
+    const radial = (n: number, w: number) => (a * n - Math.floor(a * n)) * (turn / n) < w * pxH;
+    if (det.arcade) {
+      const arch = arcade(det, u, zr);
+      if (arch >= 0) return arch === 0 ? pick(M.window, 1) : pick(m, arch === 1 ? b + 2 : b - 1);
+    }
     switch (det.material) {
       case 'stone':
-        return pick(m, course(0.6, 1.2) ? b + 1 : b);
+        return pick(m, joint(u, zr, 0.6, 1.2, pxH) ? b + 1 : b);
       case 'brick':
-        return pick(m, course(0.5, 1) ? b + 1 : b);
+        return pick(m, joint(u, zr, 0.5, 1, pxH) ? b + 1 : b);
       case 'slate':
-        return pick(m, course(0.6, 1) ? b + 1 : b);
+        return pick(m, joint(u, zr, 0.6, 1, pxH) ? b + 1 : b);
       case 'tile': {
-        const row = Math.floor(zr / 0.45);
-        if (zr - row * 0.45 < 0.13) return pick(m, b + 1);
-        return pick(m, (mix(mix(5, row), Math.floor(u / 0.3)) & 15) === 0 ? b - 1 : b);
+        if (det.kind === 'cylinder') return tiles(m, b, zr, u);
+        // Curved roof: tile channels running down the slope, about 0.9 m apart at the eave,
+        // with darker seams between panels about 8 m wide.
+        const base = 2 * Math.PI * det.radiusM;
+        if (radial(Math.max(8, Math.round(base / 8)), 1.5)) return pick(m, b + 2);
+        return pick(m, radial(Math.max(12, Math.round(base / 0.9)), 1) ? b + 1 : b);
       }
-      case 'metal':
-        return pick(m, u - Math.floor(u / 1.2) * 1.2 < pxH ? b + 1 : b);
+      case 'metal': {
+        if (det.kind !== 'dome') return pick(m, u - Math.floor(u / 1.2) * 1.2 < pxH ? b + 1 : b);
+        // Faint panel grid: meridians about 3 m apart at the base (none near the crown) and
+        // parallels at equal steps of a pseudo-latitude.
+        const q = zr / det.heightM;
+        const lat = q / (rz / det.radiusM + q || 1);
+        const nLat = Math.max(3, Math.round((Math.PI * (det.radiusM + det.heightM)) / 4 / 3));
+        const ring = lat * nLat - Math.floor(lat * nLat) < 0.07;
+        const mer = rz > 0.2 * det.radiusM && radial(Math.max(8, Math.round((2 * Math.PI * det.radiusM) / 3)), 1);
+        return pick(m, ring || mer ? b + 1 : b);
+      }
       default:
         return pick(m, b);
     }
+  }
+
+  /**
+   * Bullring arcade on a cylinder: two tiers of round-headed openings about 2 m wide and 3 m tall,
+   * about 4 m apart around the wall, and a cornice between the tiers. Returns 0 inside an opening,
+   * 1 for the cornice's shadow line, 2 for its lit top, -1 for plain wall.
+   */
+  function arcade(det: Detail, u: number, zr: number): number {
+    const tier = det.heightM / 2;
+    if (zr >= tier - 1.5 * pxV && zr < tier) return 1;
+    if (zr >= tier && zr < tier + pxV) return 2;
+    const turn = 2 * Math.PI * det.radiusM;
+    const n = Math.max(4, Math.round(turn / 4));
+    const sp = turn / n;
+    const dc = u - (Math.floor(u / sp) + 0.5) * sp;
+    const hw = Math.min(1, sp / 4);
+    const h = Math.min(3, tier * 0.7);
+    const z0 = (zr < tier ? 0 : tier) + (tier - h) * 0.45;
+    const yc = z0 + h - hw;
+    if (dc <= -hw || dc >= hw || zr < z0) return -1;
+    return zr <= yc || dc * dc + (zr - yc) * (zr - yc) <= hw * hw ? 0 : -1;
   }
 
   return {

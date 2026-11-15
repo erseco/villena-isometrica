@@ -86,12 +86,15 @@ samples are the class codes; its PLTE is only for viewing). `buildingId.json` is
 
 ## Landmark details (scene contract v1.1, ADR 0008)
 
-![Castle tower, church spire, dome on drum, turret and frustum at 8 px/m, 2×](docs/landmark-details-2x.png)
+![Castle keep and tower, church (gable nave, tower, slate spire), small bullring (arcaded drum, tile roof ring, metal dome), turret and frustum at 8 px/m, 2×](docs/landmark-details-2x.png)
 
 `scene.json` with `schemaVersion` 1.x is accepted. The optional `details` layer is checked like
 the others (file present, sha256) plus its feature `count`, and every property strictly: unknown
 keys, a bad `kind`/`material`/`sides`, a non-positive `heightM`/`radiusM`, a negative
 `topRadiusM`, `topRadiusM`/`sides` on anything but a cone, `parapet` on anything but a cylinder,
+`openings` other than `arcade` or on anything but a cylinder, `radiusM` on a gable, a missing or
+non-positive `lengthM`/`widthM`/`wallHeightM` on a gable, `wallHeightM` ≥ `heightM`, a
+`roofMaterial` other than tile/slate/metal, any of those four on another kind,
 `shapeSource` other than `reference` or a duplicate id fail with `details.geojson: detail <id>: …`.
 Part properties `parapet` and `material` are validated the same way. A scene without these renders
 exactly as before (the original golden hashes and the Villena scene were checked unchanged).
@@ -102,8 +105,10 @@ exactly as before (the original golden hashes and the Villena scene were checked
   3 px per facet, `max(8, min(128, 4·ceil(r_px / 2)))`. Cylinder: side quads and a flat top cap.
   Cone: quads from the base ring to the `topRadiusM` ring (top cap when > 0) or triangles to the
   apex; `sides: 4` is a square pyramid/frustum whose face normal points at `rotationDeg`. Dome:
-  half ellipsoid in `ceil(n / 4)` latitude rings ending at the pole. Vertices use the package's
-  own `sinDeg`/`cosDeg`. Back faces are culled.
+  half ellipsoid in `ceil(n / 4)` latitude rings ending at the pole. Gable: a `lengthM` × `widthM`
+  box centred on the point with its ridge along bearing `rotationDeg`: two long walls up to
+  `wallHeightM`, two pentagonal end walls (vertical gables) up to `heightM`, two roof slopes.
+  Vertices use the package's own `sinDeg`/`cosDeg`. Back faces are culled.
 - **Battlements**: on a part with `parapet: "battlement"`, every wall edge (holes too) carries
   merlon boxes 0.7 m wide, 0.9 m high, 0.5 m deep on its inner side, starting and ending at the
   edge's vertices with gaps as close to 0.7 m as a whole count allows (`merlonSpans`); edges under
@@ -112,22 +117,39 @@ exactly as before (the original golden hashes and the Villena scene were checked
   `max(6, round(2πR / 1.4))` merlons of the same size.
 - **Style**: materials map to palette ramps — stone `stone`, brick `terracotta`, plaster
   `limewash`, tile `terracotta`, slate `slate` (3 colours added, palette version 2, 64 colours),
-  metal `concrete`. A part's `material` replaces its wall ramp and keeps its window layout. Round
+  metal `concrete`. A part's `material`: `stone` gives the fortification masonry (staggered
+  0.6 × 1.2 m courses) and no windows or doors — a church or castle wall is not a house front;
+  `brick` gives terracotta with 0.5 × 1 m courses and `plaster` plain limewash, both keeping the
+  window layout of the part's `use`. Round
   sides are shaded per pixel by the analytic normal of the solid (cylinder radial, cone with its
   slope, dome ellipsoid gradient) with the usual sun and four bands, plus a 4×4 ordered dither of
   ±0.03 on `n·L` so the band steps read as a curved surface; square pyramids, caps and merlons use
   flat facet bands. Textures in metres around the solid and above its base: stone courses
-  0.6 m × 1.2 m staggered, brick 0.5 × 1 m, slate 0.6 × 1 m, tile courses 0.45 m as on roofs,
-  metal vertical panel seams every 1.2 m, plaster plain. A detail's sides and its top are two
-  outline keys, so silhouettes and the rim get the usual 1 px outline.
+  0.6 m × 1.2 m staggered, brick 0.5 × 1 m, slate 0.6 × 1 m, metal vertical panel seams every
+  1.2 m, plaster plain. Tile on a cone or frustum runs radially: channels down the slope about
+  0.9 m apart at the eave and darker seams between panels about 8 m wide (a fraction of a turn
+  around the axis, so the pattern is fixed to the solid); a tile cylinder keeps 0.45 m courses. A
+  metal dome carries a faint panel grid: meridians about 3 m apart at the base, stopping short of
+  the crown, and parallels at equal steps of the pseudo-latitude `q / (r/R + q)` (`q` = height
+  fraction; no `atan`). `openings: "arcade"` on a cylinder cuts two tiers of round-headed dark
+  openings (≈ 2 m wide, ≈ 3 m tall, about 4 m apart around the wall, anchored to the angle) with a
+  shadowed cornice line between the tiers. Gable walls are masonry like the other details; the
+  long walls get pilasters (0.8 m, a shadow line on one side) between bays of about 6 m and one
+  narrow arched slit window per bay; the end walls are plain. The roof slopes use the building
+  roof textures in `roofMaterial` with courses parallel to the ridge (tile 0.45 m rows, slate
+  0.6 × 1 m, metal standing seams down the slope every 1.2 m). A detail's sides and its top (roof
+  slopes on a gable) are two outline keys, so silhouettes and the rim get the usual 1 px outline.
 - **Tests** (`test/details.test.ts`): a synthetic scene (`test/detail-scene.ts`: the fixture plus
-  a battlemented keep, a battlemented stone cylinder, a slate square spire on a stone church
-  tower, a metal dome on a plaster drum, a brick turret with a tile cone and a stone frustum)
-  with committed hashes in `test/golden-details.json` (`UPDATE_GOLDEN=1 bun test` rewrites
-  them), chunk-size independence, class 7 ⇔ detail id in the index, dome and spire silhouettes
-  against extents computed in the test from projection.md with the platform trigonometry, merlons
-  above the keep, and the validation failures. `bun test/contact-sheet.ts` regenerates the image
-  above.
+  a battlemented keep, a battlemented stone cylinder, a church rotated 70° — stone gable nave,
+  stone tower part, slate square spire —, a small bullring — arcaded plaster drum, tile roof
+  ring, metal dome —, a brick turret with a tile cone and a stone frustum) with committed hashes
+  in `test/golden-details.json` (`UPDATE_GOLDEN=1 bun test` rewrites them), chunk-size
+  independence, class 7 ⇔ detail id in the index, the dome silhouette, the rotated spire and
+  gable against extents computed in the test from projection.md with the platform trigonometry
+  (the spire's front corner and the gable's extent for `-rotationDeg` are asserted to differ, so
+  a sign flip fails; checked by mutating the renderer), no window/door pixels on the stone tower
+  part, dark openings on the arcaded drum, merlons above the keep, and the validation failures.
+  `bun test/contact-sheet.ts` regenerates the image above.
 
 ## Determinism
 
@@ -162,7 +184,8 @@ docker run --rm --platform linux/amd64 -v "$PWD":/w -v /w/pipeline/rendering/nod
 On 2026-11-15 this printed the golden hashes on `x86_64` (macOS arm64 host: identical), and the
 Villena fallback scene gave identical `pixelSha256` on both platforms and for chunk sizes 2048
 and 1500. After the v1.1 details the same command passed all 24 tests in the container,
-including `test/golden-details.json`.
+including `test/golden-details.json`; after round 2 (gable, arcade, textures) it printed the
+same golden hashes and passed all 26 tests.
 
 ## Performance (Apple M5, 24 GB, Bun 1.4.4)
 
@@ -174,10 +197,11 @@ including `test/golden-details.json`.
 | same, `linux/amd64` container under emulation | 11 314 × 6 836 | 19.7 s | 2.6 GB |
 | Villena full scene (8 108 parts, 4 789 trees) + 60 test details | 11 314 × 6 981 | 11.8 s | 2.9 GB |
 | same, `--depth` | 11 314 × 6 981 | 17.2 s | 4.6 GB |
+| Villena v1.1 scene (11 600 parts, 10 637 trees, 21 details), no `--depth` | 15 557 × 9 006 | 20.6 s | 5.3 GB |
 
 The details add about 0.6 s on that scene (11.2 s without them). The budget is 10 minutes and
-8 GB; at the v1.1 AOI (≈ 15 557 × 9 006 px, 1.8× the pixels) expect ≈ 5.5 GB without `--depth`
-and ≈ 8 GB with it, so render the full city without `--depth`. Memory is dominated by the full-image output buffers
+8 GB; at the v1.1 AOI the measured 5.3 GB without `--depth` leaves room, while `--depth` would
+need ≈ 8 GB (extrapolated, not run), so render the full city without `--depth`. Memory is dominated by the full-image output buffers
 (≈ 40 bytes per pixel with `--depth`); time grows roughly linearly with pixels and terrain cells.
 
 ## Dependencies (pinned in `bun.lock`)
