@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "1.0",
+  "cityId": "villena",
+  "datasets": [
+    {
+      "id": "catastro-buildings",
+      "provider": "Dirección General del Catastro",
+      "name": "INSPIRE Buildings Villena (03140)",
+      "version": "2026-08-21",
+      "acquisitionDate": "2026-08-21",
+      "coverage": "Municipality 03140 (Villena)",
+      "url": "https://www.catastro.hacienda.gob.es/INSPIRE/Buildings/03/03140-VILLENA/A.ES.SDGC.BU.03140.zip",
+      "access": "direct",
+      "resolution": "vector (1:1000)",
+      "crs": "EPSG:25830",
+      "license": {
+        "name": "Licencia de acceso y uso de los servicios y conjuntos de datos INSPIRE de la Dirección General del Catastro",
+        "url": "https://www.catastro.hacienda.gob.es/webinspire/documentos/Licencia.pdf",
+        "attribution": "Fuente de edificios: Dirección General del Catastro, Ministerio de Hacienda (fecha de acceso: 2026-11-15)"
+      },
+      "redistribution": {
+        "raw": false,
+        "derivatives": true,
+        "notes": "Raw redistribution prohibited without transformation. Transformed works, including rendered pixel-art tiles and images, permitted for public and commercial use."
+      },
+      "sizeBytes": 3971442,
+      "sha256": "38588fba7a3fd15bcff301096639720fd79fb37edfc975cda517a945024f1e17",
+      "localPath": "data/raw/catastro-buildings/A.ES.SDGC.BU.03140.zip",
+      "retrievedAt": "2026-11-15"
+    },
+    {
+      "id": "ign-mdt50cm",
+      "provider": "Instituto Geográfico Nacional / CNIG",
+      "name": "MDT50cm 3ª cobertura (hoja 0845-8-2)",
+      "version": "COB3-V1",
+      "acquisitionDate": "2023",
+      "coverage": "Sheet 0845-8-2 (E 683060-686850, N 4277210-4279710)",
+      "url": "https://centrodedescargas.cnig.es/CentroDescargas/detalleArchivo?sec=12759170",
+      "access": "manual",
+      "resolution": "0.5 m",
+      "crs": "EPSG:25830",
+      "license": {
+        "name": "CC BY 4.0 (Orden FOM/2807/2015)",
+        "url": "https://www.ign.es/resources/licencia/Condiciones_licenciaUso_IGN.pdf",
+        "attribution": "Obra derivada de MDT50cm-cob3 2022-2025 CC-BY 4.0 scne.es"
+      },
+      "redistribution": {
+        "raw": true,
+        "derivatives": true,
+        "notes": "CC BY 4.0 allows commercial and non-commercial reuse, transformation and redistribution with attribution."
+      },
+      "sizeBytes": 64036454,
+      "sha256": null,
+      "localPath": "data/raw/ign-mdt50cm/MDT50CM-ETRS89-H30-0845-8-2-COB3-V1.tif",
+      "retrievedAt": null
+    },
+    {
+      "id": "ign-mds50cm",
+      "provider": "Instituto Geográfico Nacional / CNIG",
+      "name": "MDS50cm 3ª cobertura (hoja 0845-8-2)",
+      "version": "COB3-V1",
+      "acquisitionDate": "2023",
+      "coverage": "Sheet 0845-8-2 (E 683060-686850, N 4277210-4279710)",
+      "url": "https://centrodedescargas.cnig.es/CentroDescargas/detalleArchivo?sec=13118318",
+      "access": "manual",
+      "resolution": "0.5 m",
+      "crs": "EPSG:25830",
+      "license": {
+        "name": "CC BY 4.0 (Orden FOM/2807/2015)",
+        "url": "https://www.ign.es/resources/licencia/Condiciones_licenciaUso_IGN.pdf",
+        "attribution": "Obra derivada de MDS50cm-cob3 2022-2025 CC-BY 4.0 scne.es"
+      },
+      "redistribution": {
+        "raw": true,
+        "derivatives": true,
+        "notes": "CC BY 4.0 allows commercial and non-commercial reuse, transformation and redistribution with attribution."
+      },
+      "sizeBytes": 119524884,
+      "sha256": null,
+      "localPath": "data/raw/ign-mds50cm/MDS50CM-ETRS89-H30-0845-8-2-COB3-V1.tif",
+      "retrievedAt": null
+    },
+    {
+      "id": "ign-mdt05",
+      "provider": "Instituto Geográfico Nacional",
+      "name": "MDT05 Elevación WCS (Elevacion25830_5)",
+      "version": "2009",
+      "acquisitionDate": "2009",
+      "coverage": "AOI + margin (E 685380-686620, N 4277380-4278620)",
+      "url": "https://servicios.idee.es/wcs-inspire/mdt",
+      "access": "ogc-service",
+      "resolution": "5 m",
+      "crs": "EPSG:25830",
+      "license": {
+        "name": "CC BY 4.0 (Orden FOM/2807/2015)",
+        "url": "https://www.ign.es/resources/licencia/Condiciones_licenciaUso_IGN.pdf",
+        "attribution": "Obra derivada de MDT05 2009 CC-BY 4.0 scne.es"
+      },
+      "redistribution": {
+        "raw": true,
+        "derivatives": true,
+        "notes": "Low-resolution scriptable fallback terrain. CC BY 4.0 permits redistribution with attribution."
+      },
+      "sizeBytes": 493615,
+      "sha256": "ae3fb9adfdebb9ecb332ec77598a887967cbe45f3e427d831d0a0ef8580136a4",
+      "localPath": "data/raw/ign-mdt05/mdt05-aoi-margin.asc",
+      "retrievedAt": "2026-11-15"
+    },
+    {
+      "id": "osm",
+      "provider": "OpenStreetMap contributors",
+      "name": "OpenStreetMap AOI + margin extract",
+      "version": "2026-11-15T12:22:50Z",
+      "acquisitionDate": "2026-11-15",
+      "coverage": "AOI + 120 m margin (lat: 38.625327-38.636754, lon: -0.870437--0.855869)",
+      "url": "https://overpass-api.de/api/interpreter",
+      "access": "direct",
+      "resolution": "vector",
+      "crs": "EPSG:4326",
+      "license": {
+        "name": "Open Database License (ODbL) 1.0",
+        "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+        "attribution": "© OpenStreetMap contributors (ODbL)"
+      },
+      "redistribution": {
+        "raw": true,
+        "derivatives": true,
+        "notes": "Raw and derivative databases must be offered under ODbL. Rendered pixel-art tiles and images are Produced Works exempt from share-alike."
+      },
+      "sizeBytes": 11046725,
+      "sha256": "7e5a4e82561b24ad9693006585ea0568b0289a4e25ca90b9e9e4a8f1029e01a4",
+      "localPath": "data/raw/osm/osm-aoi-margin.json",
+      "retrievedAt": "2026-11-15"
+    }
+  ]
+}
