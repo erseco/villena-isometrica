@@ -1,0 +1,287 @@
+{
+ "version": 0.6,
+ "generator": "synthetic",
+ "osm3s": {
+  "timestamp_osm_base": "2026-01-01T00:00:00Z"
+ },
+ "elements": [
+  {
+   "type": "node",
+   "id": 9001,
+   "lat": 38.5572513,
+   "lon": -0.7041699,
+   "tags": {
+    "natural": "tree"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1001,
+   "nodes": [
+    0,
+    1,
+    2
+   ],
+   "geometry": [
+    {
+     "lat": 38.5565951,
+     "lon": -0.7051662
+    },
+    {
+     "lat": 38.5565636,
+     "lon": -0.7035607
+    },
+    {
+     "lat": 38.5565321,
+     "lon": -0.7019552
+    }
+   ],
+   "tags": {
+    "highway": "residential",
+    "name": "Calle Mayor"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1002,
+   "nodes": [
+    100200,
+    100201
+   ],
+   "tags": {
+    "highway": "residential",
+    "name": "Calle Nueva"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1003,
+   "nodes": [
+    0,
+    1
+   ],
+   "geometry": [
+    {
+     "lat": 38.5566424,
+     "lon": -0.7029844
+    },
+    {
+     "lat": 38.5575429,
+     "lon": -0.7029557
+    }
+   ],
+   "tags": {
+    "highway": "pedestrian",
+    "name": "Subida al Castillo",
+    "width": "3 m"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1004,
+   "nodes": [
+    0,
+    1
+   ],
+   "geometry": [
+    {
+     "lat": 38.5566401,
+     "lon": -0.7028697
+    },
+    {
+     "lat": 38.5567279,
+     "lon": -0.7027522
+    }
+   ],
+   "tags": {
+    "highway": "construction"
+   }
+  },
+  {
+   "type": "way",
+   "id": 2001,
+   "nodes": [
+    200100,
+    200101,
+    200102,
+    200103,
+    200100
+   ],
+   "tags": {}
+  },
+  {
+   "type": "way",
+   "id": 2002,
+   "nodes": [
+    200200,
+    200201,
+    200202,
+    200203,
+    200200
+   ],
+   "tags": {}
+  },
+  {
+   "type": "relation",
+   "id": 3001,
+   "tags": {
+    "type": "multipolygon",
+    "leisure": "park",
+    "name": "Jardín"
+   },
+   "members": [
+    {
+     "type": "way",
+     "ref": 2001,
+     "role": "outer"
+    },
+    {
+     "type": "way",
+     "ref": 2002,
+     "role": "inner"
+    }
+   ]
+  },
+  {
+   "type": "way",
+   "id": 4001,
+   "nodes": [
+    400100,
+    400101,
+    400102,
+    400103,
+    400100
+   ],
+   "tags": {
+    "building": "yes",
+    "name": "Castillo Sintético"
+   }
+  },
+  {
+   "type": "way",
+   "id": 4002,
+   "nodes": [
+    0,
+    1
+   ],
+   "geometry": [
+    {
+     "lat": 38.5568202,
+     "lon": -0.702864
+    },
+    {
+     "lat": 38.5570904,
+     "lon": -0.7028554
+    }
+   ],
+   "tags": {
+    "barrier": "city_wall"
+   }
+  },
+  {
+   "type": "way",
+   "id": 4003,
+   "nodes": [
+    0,
+    1
+   ],
+   "geometry": [
+    {
+     "lat": 38.5576149,
+     "lon": -0.7043305
+    },
+    {
+     "lat": 38.5576081,
+     "lon": -0.7039864
+    }
+   ],
+   "tags": {
+    "barrier": "wall"
+   }
+  },
+  {
+   "type": "node",
+   "id": 100200,
+   "lat": 38.5566716,
+   "lon": -0.7044752
+  },
+  {
+   "type": "node",
+   "id": 100201,
+   "lat": 38.5575721,
+   "lon": -0.7044466
+  },
+  {
+   "type": "node",
+   "id": 200100,
+   "lat": 38.5572074,
+   "lon": -0.7042287
+  },
+  {
+   "type": "node",
+   "id": 200101,
+   "lat": 38.5571984,
+   "lon": -0.70377
+  },
+  {
+   "type": "node",
+   "id": 200102,
+   "lat": 38.5574686,
+   "lon": -0.7037614
+  },
+  {
+   "type": "node",
+   "id": 200103,
+   "lat": 38.5574776,
+   "lon": -0.7042201
+  },
+  {
+   "type": "node",
+   "id": 200200,
+   "lat": 38.5572952,
+   "lon": -0.7041111
+  },
+  {
+   "type": "node",
+   "id": 200201,
+   "lat": 38.557293,
+   "lon": -0.7039965
+  },
+  {
+   "type": "node",
+   "id": 200202,
+   "lat": 38.557383,
+   "lon": -0.7039936
+  },
+  {
+   "type": "node",
+   "id": 200203,
+   "lat": 38.5573853,
+   "lon": -0.7041083
+  },
+  {
+   "type": "node",
+   "id": 400100,
+   "lat": 38.5567986,
+   "lon": -0.7035991
+  },
+  {
+   "type": "node",
+   "id": 400101,
+   "lat": 38.5567874,
+   "lon": -0.7030257
+  },
+  {
+   "type": "node",
+   "id": 400102,
+   "lat": 38.5571295,
+   "lon": -0.7030148
+  },
+  {
+   "type": "node",
+   "id": 400103,
+   "lat": 38.5571408,
+   "lon": -0.7035882
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+[
+ {
+  "id": "keep",
+  "name": "Torre del Homenaje",
+  "altNames": [
+   "Castillo"
+  ],
+  "kind": "landmark",
+  "source": {
+   "dataset": "synthetic",
+   "ref": "poi-1"
+  },
+  "lat": 38.5568776,
+  "lon": -0.7034933
+ },
+ {
+  "id": "plaza",
+  "name": "Plaza Sintética",
+  "altNames": [],
+  "kind": "square",
+  "source": {
+   "dataset": "synthetic",
+   "ref": "poi-2"
+  },
+  "lat": 38.5567527,
+  "lon": -0.7040137
+ }
+]
