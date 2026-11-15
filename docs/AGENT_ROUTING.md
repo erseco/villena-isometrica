@@ -59,7 +59,7 @@ Rules:
 ## Starting a task
 
 ```sh
-make worktree WP=03-gis-pipeline        # creates branch agent/wp03-gis-pipeline in its own worktree
+make worktree WP=03-gis-pipeline        # creates branch feature/wp03-gis-pipeline in its own worktree
 cd ../villena-isometrica-worktrees/wp03-gis-pipeline
 claude --model claude-opus-5-5 --effort high
 # first message:  Read prompts/03-gis-pipeline.md and execute it.

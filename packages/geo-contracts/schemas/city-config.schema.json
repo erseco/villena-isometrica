@@ -107,7 +107,7 @@
         "pitchDeg": {
           "type": "number",
           "exclusiveMinimum": 0,
-          "maximum": 90
+          "exclusiveMaximum": 90
         },
         "pixelsPerMetre": {
           "type": "number",

@@ -23,7 +23,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^[a-z][a-z0-9-]*$"
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "The GIS pipeline looks its inputs up by fixed ids: see docs/contracts/scene.md, 'Pipeline inputs'."
           },
           "provider": {
             "type": "string",
@@ -124,12 +125,12 @@
                 "type": "null"
               }
             ],
-            "description": "null until the file has been retrieved and pinned (then sha256 of the file exactly as received). The pipeline refuses to read a local file whose checksum is null or does not match. For live services the checksum is that of the saved response."
+            "description": "null until the file has been retrieved and pinned (then sha256 of the file exactly as received). The pipeline refuses to read a local file whose checksum is null or does not match. For live services the checksum is that of the saved response. Synthetic test fixtures that the pipeline never reads are exempt."
           },
           "localPath": {
             "type": "string",
             "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
-            "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+            "description": "Relative POSIX path, no '..', resolved against the repository root (the pipeline's --data-root) — not against this file."
           },
           "retrievedAt": {
             "type": [

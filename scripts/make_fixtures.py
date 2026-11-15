@@ -11,7 +11,7 @@ implementation in this repository (see tiles-synthetic/expected.json).
 Outputs (all committed, all deterministic):
   tests/fixtures/city-synthetic/     city.json, datasets.json
   tests/fixtures/scene-synthetic/    scene.json + terrain + layers   (renderer input)
-  tests/fixtures/render-synthetic/   render.json + color/class/buildingId layers (tile-export input;
+  tests/fixtures/render-synthetic/   render.json + palette.json + color/class/buildingId layers (tile-export input;
                                      terrain only: buildings are not drawn)
   tests/fixtures/tiles-synthetic/    manifest.json, pois.json, height.u16, tiles, expected.json
                                      (viewer / export-validator input)
@@ -144,7 +144,7 @@ poi_defs = [
     poi("calle-mayor", "Calle Mayor", "street", 64, 64, ref="syn-road-1", bounds_xy=(0, 60, 128, 68)),
     poi("sw-corner", "Esquina suroeste", "other", 0, 0, ref="aoi"),
 ]
-dump(SCENE / "pois.json", {"schemaVersion": "1.0", "cityId": "planeville", "pois": [p for p, _ in poi_defs]})
+dump(SCENE / "pois.json", {"schemaVersion": "1.0", "cityId": "planeville", "pois": sorted((p for p, _ in poi_defs), key=lambda p: p["id"])})
 
 layers = {"buildings": buildings, "roads": roads, "landcover": landcover, "trees": trees}
 for name, feats in layers.items():
@@ -217,26 +217,40 @@ for p, bxy in poi_defs:
     for d in range(-4, 5):  # red cross centred on the POI anchor so marker alignment is visible
         for i, j in ((int(p["X"]) + d, int(p["Y"])), (int(p["X"]), int(p["Y"]) + d)):
             if 0 <= i < W and 0 <= j < H:
-                img[j][i] = (0xD9, 0x3A, 0x3A)
+                img[j][i] = (0xD9, 0x3A, 0x3A)  # = MARK in the fixture palette
 
 # ---------------------------------------------------------------- render output (tile-export input)
 RENDER = ROOT / "render-synthetic"
 projection = {"headingDeg": HEADING, "pitchDeg": PITCH, "pixelsPerMetre": PPM, "origin": origin,
               "matrix": MATRIX, "translation": [tx, ty]}
 ROAD = (0x8A, 0x8F, 0x98)
-png(RENDER / "color.png", W, H, [bytes(c for px in row for c in ((*px, 255) if px != BG else (0, 0, 0, 0))) for row in img], ctype=6)
-png(RENDER / "class.png", W, H, [bytes(0 if px == BG else 2 if px == ROAD else 1 for px in row) for row in img], ctype=3,
-    plte=bytes([0, 0, 0, 90, 160, 80, 140, 140, 150, 200, 180, 150, 180, 80, 60, 40, 110, 50, 60, 120, 200, 230, 200, 60]))
-png(RENDER / "buildingId.png", W, H, [bytes(3 * W)] * H)
+MARK = (0xD9, 0x3A, 0x3A)
+dump(RENDER / "palette.json", {"schemaVersion": "1.0", "name": "planeville-fixture", "version": "1", "colors": [
+    {"hex": "#%02x%02x%02x" % c, "role": r} for c, r in (((0x6F, 0xA8, 0x5C), "ground-light"),
+                                                        ((0x5C, 0x93, 0x4E), "ground-dark"), (ROAD, "road"),
+                                                        (MARK, "poi-anchor-mark"))]})
+render_layers = [  # name, file, encoding, PNG colour type, decoded rows (the bytes pixelSha256 is computed over)
+    ("color", "color.png", "rgba8-png", 6,
+     [bytes(c for px in row for c in ((*px, 255) if px != BG else (0, 0, 0, 0))) for row in img]),
+    ("class", "class.png", "index8-png", 3, [bytes(0 if px == BG else 2 if px == ROAD else 1 for px in row) for row in img]),
+    ("buildingId", "buildingId.png", "rgb24-id-png", 2, [bytes(3 * W)] * H),
+]
+CLASS_PLTE = bytes([0, 0, 0, 90, 160, 80, 140, 140, 150, 200, 180, 150, 180, 80, 60, 40, 110, 50, 60, 120, 200, 230, 200, 60])
+layer_entries = []
+for name, fname, encoding, ctype, rows in render_layers:
+    png(RENDER / fname, W, H, rows, ctype=ctype, plte=CLASS_PLTE if ctype == 3 else None)
+    entry = {"name": name, "path": fname, "encoding": encoding, "sha256": sha(RENDER / fname),
+             "pixelSha256": hashlib.sha256(b"".join(rows)).hexdigest()}
+    if name == "buildingId":
+        entry["index"] = "buildingId.json"
+    layer_entries.append(entry)
 dump(RENDER / "buildingId.json", [None])
 dump(RENDER / "render.json", {
     "schemaVersion": "1.0", "cityId": "planeville", "image": {"width": W, "height": H}, "projection": projection,
     "zRange": zrange, "background": "#%02x%02x%02x" % BG, "sceneSha256": sha(SCENE / "scene.json"),
     "renderer": {"name": "make_fixtures", "version": "1"},
-    "layers": [{"name": "color", "path": "color.png", "encoding": "rgba8-png", "sha256": sha(RENDER / "color.png")},
-               {"name": "class", "path": "class.png", "encoding": "index8-png", "sha256": sha(RENDER / "class.png")},
-               {"name": "buildingId", "path": "buildingId.png", "encoding": "rgb24-id-png", "index": "buildingId.json",
-                "sha256": sha(RENDER / "buildingId.png")}],
+    "palette": {"path": "palette.json", "sha256": sha(RENDER / "palette.json")},
+    "layers": layer_entries,
 })
 
 # ---------------------------------------------------------------- pyramid
@@ -274,7 +288,7 @@ check = [(e, n_, *to_geo.transform(e, n_)) for e in np.linspace(E0, E0 + SIZE, 9
 residual = max(math.hypot(m[0][0] * lo + m[0][1] * la + m[0][2] - e, m[1][0] * lo + m[1][1] * la + m[1][2] - n_)
                for e, n_, lo, la in check for m in [geo_matrix])
 
-dump(TILES / "pois.json", {"schemaVersion": "1.0", "cityId": "planeville", "pois": pois})
+dump(TILES / "pois.json", {"schemaVersion": "1.0", "cityId": "planeville", "pois": sorted(pois, key=lambda p: p["id"])})
 dump(TILES / "manifest.json", {
     "schemaVersion": "1.0", "cityId": "planeville", "name": "Planeville (synthetic)", "release": "fixture-1",
     "image": {"width": W, "height": H},
@@ -285,6 +299,7 @@ dump(TILES / "manifest.json", {
     "heightGrid": {"path": "height.u16", "width": gn, "height": gn, "cellSize": gcell, "westE": E0 - MARGIN,
                    "northN": N0 + SIZE + MARGIN, "dtype": "uint16-le", "scale": 0.01, "offset": H0 + z_lo},
     "background": "#%02x%02x%02x" % BG, "pois": "pois.json", "attribution": attribution,
+    "crs": crs, "renderSha256": sha(RENDER / "render.json"),
 })
 
 # Expected values that do not come from any implementation under test.
@@ -298,7 +313,8 @@ for x, y in [(0, 0), (64, 64), (100, 20), (20, 100), (127, 127), (33.3, 77.7)]:
 dump(TILES / "expected.json", {
     "description": "Ground points on the analytic terrain plane z = 0.10*x + 0.05*y (local metres). "
                    "forward(E,N,H) must give X,Y within 1e-3 px; terrainPick(X,Y) must give E,N within 0.05 m "
-                   "(limited by the 0.01 m height quantisation); lon/lat come from PROJ and the geoToWorld affine "
+                   "(a property of this planar terrain: only the 0.01 m height quantisation matters; on real terrain the pick is "
+                   "accurate to about cellSize/(2 tan pitch), see projection.md 5.2); lon/lat come from PROJ and the geoToWorld affine "
                    "must match them within manifest.geoToWorld.maxResidualM.",
     "groundPoints": cases,
     "referencePlane": {"description": "Reference-plane inverse (zr = 0) of pixel (X, Y), closed form.",

@@ -258,6 +258,30 @@
             "path",
             "sha256"
           ]
+        },
+        "structures": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/{}-]+$",
+              "description": "Relative POSIX path, no '..', resolved against the directory of this file."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "count",
+            "path",
+            "sha256"
+          ]
         }
       },
       "required": [

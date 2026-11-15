@@ -30,14 +30,19 @@ Consequences for this repository:
    height grid — produced works and IGN-derived data. Allowed, with credits.
 2. **Raw data is never committed or published.** For Catastro this is a licence requirement;
    for the rest it is a size rule.
-3. **Scene files (derived vectors) are not published.** Whether Catastro-derived vectors may
-   be redistributed is unresolved (WP01). Until resolved they stay local, like raw data.
+3. **Scene files (derived vectors) are not published.** WP01 confirmed that while rendered
+   images and static tiles are unambiguously transformed works ("obra diferente" under Art. 21
+   TRLPI), distributing vector GeoJSON footprints derived from Catastro remains legally
+   ambiguous under Catastro's terms. Therefore, scene vector files remain internal build
+   artifacts and are not published or distributed as release assets in v0.1.0.
 4. **OSM-derived and Catastro-derived data stay in separate layers/files** and are never
    merged into one distributed database (ODbL share-alike would then apply to the whole).
    The POI list is OSM-derived: it is published and is offered under ODbL.
-5. The ministry name in the Catastro citation differs between Catastro's own documents;
-   "Dirección General del Catastro" is the stable part and is what we cite until WP01
-   confirms the exact wording.
+5. **Catastro ministry name:** The current governing ministry is the **Ministerio de Hacienda**
+   (formerly Ministerio de Economía y Hacienda in the 2011 resolution). The complete recommended
+   citation is: `Fuente de edificios: Dirección General del Catastro, Ministerio de Hacienda`
+   plus date of access. In the viewer compact attribution, `Fuente de edificios: Dirección General del Catastro`
+   is sufficient, with the full ministry and access date shown in the About dialog.
 
 ### Attribution shown in the viewer (from `cities/villena/city.json`)
 
@@ -83,10 +88,12 @@ those would bring attribution and share-alike duties and needs an architect deci
   licence), FLUX.2 dev / klein 9B and FLUX.1 Kontext dev (non-commercial). Re-verify on the
   day of use; record model id and revision in every job file.
 
-## Not verified
+## Not verified / ongoing legal boundaries
 
-- The BOE text of the Resolución de 23 de marzo de 2011 and Orden FOM/2807/2015 were not read
-  in full; the summaries rest on Catastro's and CNIG's own licence pages.
-- OSMF and ODbL pages were read as excerpts.
+- The Resolución de 23 de marzo de 2011 was confirmed as an internal DGC resolution published in
+  the SEC (not in the BOE). While the terms clearly authorize rendered images ("obra diferente"),
+  the exact threshold where an enriched vector model becomes an authorized derivative work
+  under Art. 21 TRLPI remains unadjudicated.
+- Orden FOM/2807/2015 summary rests on CNIG's and SCNE's published terms under CC BY 4.0.
 - Whether CC BY 4.0 data may be used to train or condition image models is not addressed by
   the IGN terms; nothing forbids it.

@@ -7,7 +7,7 @@
 Without arguments it validates the schemas themselves, every committed fixture and every
 cities/*/city.json + datasets.json. With arguments it validates those files; the schema is
 chosen from the file name (city.json, datasets.json, scene.json, render.json, manifest.json,
-pois.json, *.job.json). Beyond the schema it checks that a manifest's projection matrix agrees
+pois.json — scene-pois when it sits next to a scene.json —, palette.json, *.job.json). Beyond the schema it checks that a manifest's projection matrix agrees
 with its camera parameters (docs/contracts/projection.md section 3).
 """
 import json
@@ -20,11 +20,18 @@ import jsonschema
 ROOT = Path(__file__).resolve().parent.parent
 SCHEMAS = ROOT / "packages" / "geo-contracts" / "schemas"
 BY_NAME = {"city.json": "city-config", "datasets.json": "dataset-manifest", "scene.json": "scene-manifest",
-           "render.json": "render-manifest", "manifest.json": "tile-manifest", "pois.json": "poi"}
+           "render.json": "render-manifest", "manifest.json": "tile-manifest", "pois.json": "poi",
+           "palette.json": "palette"}
 
 
 def schema_for(path):
+    if path.name == "pois.json" and (path.parent / "scene.json").exists():
+        return "scene-pois"  # a scene's POIs have no image coordinates yet
     return "generation-job" if path.name.endswith(".job.json") else BY_NAME.get(path.name)
+
+
+def not_finite(token):
+    raise ValueError(f"non-finite number {token} is not JSON")
 
 
 def projection_errors(p):
@@ -39,12 +46,21 @@ def validate(path):
     name = schema_for(path)
     if name is None:
         return [f"no schema known for file name {path.name}"]
-    doc = json.loads(path.read_text())
+    try:
+        doc = json.loads(path.read_text(), parse_constant=not_finite)
+    except ValueError as e:
+        return [str(e)]
     schema = json.loads((SCHEMAS / f"{name}.schema.json").read_text())
     errors = [f"{'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}"
               for e in jsonschema.Draft202012Validator(schema).iter_errors(doc)]
     if not errors and "projection" in doc:
         errors += projection_errors(doc["projection"])
+    if not errors and name == "city-config" and not (path.parent / doc["datasets"]).is_file():
+        errors.append(f"datasets: {doc['datasets']} does not exist next to this file")
+    if not errors and name in ("scene-pois", "poi"):
+        ids = [p["id"] for p in doc["pois"]]
+        if ids != sorted(ids) or len(ids) != len(set(ids)):
+            errors.append("pois must be sorted by id and ids must be unique")
     return errors
 
 
@@ -57,8 +73,6 @@ def main(argv):
             jsonschema.Draft202012Validator.check_schema(json.loads(s.read_text()))
         files = sorted(p for base in (ROOT / "tests" / "fixtures", ROOT / "cities") if base.exists()
                        for p in base.rglob("*.json") if schema_for(p))
-        # the scene's pois.json may omit X, Y (docs/contracts/scene.md); it is checked by the GIS tests instead
-        files = [p for p in files if not (p.name == "pois.json" and (p.parent / "scene.json").exists())]
     for path in files:
         errors = validate(path)
         failed |= bool(errors)

@@ -10,12 +10,14 @@
    "encoding": "rgba8-png",
    "name": "color",
    "path": "color.png",
+   "pixelSha256": "b828c525e4a6219a85b92ceddb74bb25673e3f613b3c0ef7d57ad7a358f5a3b0",
    "sha256": "cbd5dd81cbe64fe84cb028ed6bde98c1080d8d2fe571556883a4d14767192434"
   },
   {
    "encoding": "index8-png",
    "name": "class",
    "path": "class.png",
+   "pixelSha256": "13067fa62ccfc8788da58b6531c9769d0e02a8ad48ad964e7ffc8848f8049b63",
    "sha256": "dcc2bef0cfca760d1ce1f9149836e6290b4b27408fad808e7152d1c5603d8709"
   },
   {
@@ -23,9 +25,14 @@
    "index": "buildingId.json",
    "name": "buildingId",
    "path": "buildingId.png",
+   "pixelSha256": "d4087785fb616e0a1dc81c33081b454e3bc28679765592951b8b9ac96d58cdcf",
    "sha256": "1b1a786334482e791ce827709eb0b497020999cec0a4f50e8062a221c1065464"
   }
  ],
+ "palette": {
+  "path": "palette.json",
+  "sha256": "39b90bc20696667c14164206894a60e7ad3661fc634f495427186a18b4bf5f33"
+ },
  "projection": {
   "headingDeg": 45.0,
   "matrix": [
@@ -56,7 +63,7 @@
   "name": "make_fixtures",
   "version": "1"
  },
- "sceneSha256": "c698c38c6d28c8483dd2ad94d67fa9048448a5f773897453a0467fdc098b860e",
+ "sceneSha256": "992114069dd4c807029da77779b615129d388e8940852601c697f038219cd1fc",
  "schemaVersion": "1.0",
  "zRange": {
   "zMax": 31,

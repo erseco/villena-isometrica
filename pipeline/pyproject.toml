@@ -1,34 +1,25 @@
 [project]
 name = "villena-pipeline"
 version = "0.1.0"
-description = "Villena Isométrica offline pipeline: acquisition, geospatial scene export, tile export"
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "geopandas==1.2.0",
-    "jsonschema==4.25.1",
-    "numpy==2.3.5",
-    "pyogrio==0.13.0",
-    "pyproj==3.8.0",
-    "rasterio==1.5.2",
-    "shapely==2.2.0",
+  "geopandas==1.2.0", "pyogrio==0.13.0", "rasterio==1.5.2", "shapely==2.2.0",
+  "pyproj==3.8.0", "numpy==2.5.4", "pillow==13.0.0", "jsonschema==4.26.0", "requests==2.34.2",
 ]
 
 [dependency-groups]
-dev = ["pytest==8.4.2", "ruff==0.14.5"]
+dev = ["pytest==9.2.0", "ruff==0.17.5"]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["acquisition", "geospatial"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
+[tool.uv]
+package = false
+no-build = true
 
 [tool.ruff]
 line-length = 120
-target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "NPY"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

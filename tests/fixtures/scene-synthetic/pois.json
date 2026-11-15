@@ -2,21 +2,24 @@
  "cityId": "planeville",
  "pois": [
   {
-   "E": 700088.0,
-   "H": 525.2,
-   "N": 4270088.0,
-   "altNames": [
-    "Castillo"
-   ],
-   "id": "keep",
-   "kind": "landmark",
-   "lat": 38.5567284,
-   "lon": -0.7036931,
-   "name": "Torre del Homenaje",
+   "E": 700064.0,
+   "H": 509.6,
+   "N": 4270064.0,
+   "id": "calle-mayor",
+   "kind": "street",
+   "lat": 38.5565177,
+   "lon": -0.7039752,
+   "name": "Calle Mayor",
    "source": {
     "dataset": "synthetic",
-    "ref": "syn-004"
-   }
+    "ref": "syn-road-1"
+   },
+   "worldBounds": [
+    700000.0,
+    4270060.0,
+    700128.0,
+    4270068.0
+   ]
   },
   {
    "E": 700086.0,
@@ -47,24 +50,21 @@
    }
   },
   {
-   "E": 700064.0,
-   "H": 509.6,
-   "N": 4270064.0,
-   "id": "calle-mayor",
-   "kind": "street",
-   "lat": 38.5565177,
-   "lon": -0.7039752,
-   "name": "Calle Mayor",
+   "E": 700088.0,
+   "H": 525.2,
+   "N": 4270088.0,
+   "altNames": [
+    "Castillo"
+   ],
+   "id": "keep",
+   "kind": "landmark",
+   "lat": 38.5567284,
+   "lon": -0.7036931,
+   "name": "Torre del Homenaje",
    "source": {
     "dataset": "synthetic",
-    "ref": "syn-road-1"
-   },
-   "worldBounds": [
-    700000.0,
-    4270060.0,
-    700128.0,
-    4270068.0
-   ]
+    "ref": "syn-004"
+   }
   },
   {
    "E": 700000.0,

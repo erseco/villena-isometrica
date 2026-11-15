@@ -75,8 +75,9 @@ The browser gets only pre-rendered tiles, a manifest and a POI list. Full pictur
 - `docs/contracts/projection.md` — frames, camera, world→image matrix, tiles, picking, URL.
 - `docs/contracts/scene.md` — GIS → renderer. `docs/contracts/render.md` — renderer → export → viewer.
 - `packages/geo-contracts/schemas/*.schema.json` — machine-checkable form.
-- Status (PROPOSED / FROZEN) is in `docs/PROJECT_STATE.md`. Only the architect changes
-  contracts, via `prompts/00-bootstrap.md` Task B: version bump + ADR + regenerated fixtures.
+- **Frozen at v1** (gate G1, `docs/decisions/0007-g1-contract-freeze.md`). Only the architect
+  changes contracts, via `prompts/00-bootstrap.md` Task B: version bump + ADR + regenerated
+  fixtures. Where a prompt and a contract disagree, the contract wins.
 - Each component implements the projection itself (≈ 20 lines) and proves conformance against
   `packages/geo-contracts/fixtures/projection-vectors.json` and
   `tests/fixtures/tiles-synthetic/expected.json`. Do not share projection code across packages.
@@ -96,7 +97,7 @@ Lockfile conflicts are resolved by regenerating, never by hand.
 
 ## Git workflow
 
-- One task = one branch `agent/wpNN-<slug>` = one worktree (`make worktree WP=NN-<slug>`).
+- One task = one branch `feature/wpNN-<slug>` = one worktree (`make worktree WP=NN-<slug>`).
   Never two writing agents in the same checkout.
 - Small commits with plain messages. No force-push, no history rewriting, no bypassing
   tests or hooks, no merging your own work.
@@ -106,20 +107,23 @@ Lockfile conflicts are resolved by regenerating, never by hand.
 
 ## Commands
 
-Available now:
-
 ```sh
 make help                 # list targets
-make check                # everything that must pass before a handoff
+make install              # uv sync (Python) + bun ci in each JS package that exists
+make check                # contracts + lint + tests + fixtures reproducible: must pass before a handoff
 make validate-contracts   # schemas, fixtures, city configs
-make fixtures             # regenerate synthetic fixtures (architect only; must be a no-op)
-make worktree WP=NN-slug  # create the task worktree and branch
-uv run scripts/validate_contracts.py <file.json>   # validate one manifest
+make lint / make test / make e2e / make build
+make scene|render|tiles|validate-tiles CITY=villena     # pipeline stages into build/<city>/
+make size-check           # deployment budget on apps/viewer/dist
+make worktree WP=NN-slug  # create the task worktree and branch feature/wpNN-slug
+uv run scripts/validate_contracts.py <file.json>        # validate one manifest
 ```
 
-Added by WP07 (`install`, `lint`, `test`, `e2e`, `build`, `scene`, `render`, `tiles`,
-`validate-tiles`, `size-check`, …): see `make help`. Package-level commands are in each
-package's README. Toolchain: Python 3.13 + uv; Bun 1.4 (Node for Playwright); TypeScript strict.
+Python: one project in `pipeline/` (Python 3.13, uv, wheels only, not installed as a package):
+run modules through the `make` targets or with `PYTHONPATH=pipeline uv run --project pipeline
+python -m <module>`. JS packages are standalone: `bun run lint|test|build` inside each
+(Playwright runs on Node). `make fixtures` regenerates the synthetic fixtures and must be a
+no-op for everyone but the architect.
 
 ## Coding standards
 

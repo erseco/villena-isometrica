@@ -1,0 +1,343 @@
+[
+  {
+    "id": "castillo-atalaya",
+    "name": "Castillo de la Atalaya",
+    "altNames": [
+      "Castillo de Villena",
+      "Fortaleza de la Atalaya"
+    ],
+    "kind": "landmark",
+    "source": {
+      "dataset": "osm",
+      "ref": "node/306347007"
+    },
+    "lat": 38.631934,
+    "lon": -0.860915
+  },
+  {
+    "id": "torre-homenaje",
+    "name": "Torre del Homenaje del Castillo",
+    "altNames": [
+      "Torre del Homenaje"
+    ],
+    "kind": "landmark",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/565944521"
+    },
+    "lat": 38.631784,
+    "lon": -0.861102
+  },
+  {
+    "id": "iglesia-santiago",
+    "name": "Iglesia Arciprestal de Santiago",
+    "altNames": [
+      "Iglesia de Santiago Apóstol",
+      "Parroquia de Santiago"
+    ],
+    "kind": "church",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/475846918"
+    },
+    "lat": 38.631552,
+    "lon": -0.863912
+  },
+  {
+    "id": "iglesia-santa-maria",
+    "name": "Iglesia de Santa María",
+    "altNames": [
+      "Parroquia de Santa María"
+    ],
+    "kind": "church",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/696092481"
+    },
+    "lat": 38.630222,
+    "lon": -0.860973
+  },
+  {
+    "id": "ermita-san-jose",
+    "name": "Ermita de San José",
+    "altNames": [
+      "Ermita de San José y San Antonio"
+    ],
+    "kind": "church",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/713679948"
+    },
+    "lat": 38.630318,
+    "lon": -0.859468
+  },
+  {
+    "id": "ayuntamiento",
+    "name": "Ayuntamiento de Villena",
+    "altNames": [
+      "Palacio Municipal",
+      "Casa Consistorial"
+    ],
+    "kind": "civic",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/550230731"
+    },
+    "lat": 38.631458,
+    "lon": -0.863041
+  },
+  {
+    "id": "teatro-chapi",
+    "name": "Teatro Chapí",
+    "altNames": [
+      "Gran Teatro Chapí"
+    ],
+    "kind": "landmark",
+    "source": {
+      "dataset": "wikidata",
+      "ref": "Q11704261"
+    },
+    "lat": 38.630514,
+    "lon": -0.866403
+  },
+  {
+    "id": "estacion-villena",
+    "name": "Estación de Villena",
+    "altNames": [
+      "Estación de ferrocarril de Villena"
+    ],
+    "kind": "transport",
+    "source": {
+      "dataset": "osm",
+      "ref": "node/2021580965"
+    },
+    "lat": 38.632266,
+    "lon": -0.867951
+  },
+  {
+    "id": "museo-soler",
+    "name": "Museo Arqueológico José María Soler",
+    "altNames": [
+      "Museo Arqueológico de Villena"
+    ],
+    "kind": "museum",
+    "source": {
+      "dataset": "osm",
+      "ref": "node/6536569783"
+    },
+    "lat": 38.631332,
+    "lon": -0.863101
+  },
+  {
+    "id": "museo-villena",
+    "name": "Museo de Villena (MUVI)",
+    "altNames": [
+      "MUVI"
+    ],
+    "kind": "museum",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/384137610"
+    },
+    "lat": 38.629915,
+    "lon": -0.866510
+  },
+  {
+    "id": "museo-festero",
+    "name": "Museo Festero",
+    "altNames": [
+      "Casa del Festero"
+    ],
+    "kind": "museum",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/696092482"
+    },
+    "lat": 38.631166,
+    "lon": -0.863310
+  },
+  {
+    "id": "museo-navarro-santafe",
+    "name": "Museo Escultor Navarro Santafé",
+    "altNames": [
+      "Museo Navarro Santafé"
+    ],
+    "kind": "museum",
+    "source": {
+      "dataset": "osm",
+      "ref": "node/6536647445"
+    },
+    "lat": 38.634240,
+    "lon": -0.864106
+  },
+  {
+    "id": "plaza-mayor",
+    "name": "Plaza Mayor",
+    "altNames": [],
+    "kind": "square",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/410546874"
+    },
+    "lat": 38.630275,
+    "lon": -0.862215
+  },
+  {
+    "id": "plaza-santiago",
+    "name": "Plaza de Santiago",
+    "altNames": [],
+    "kind": "square",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/410546984"
+    },
+    "lat": 38.631374,
+    "lon": -0.863389
+  },
+  {
+    "id": "plaza-santa-maria",
+    "name": "Plaza de Santa María",
+    "altNames": [],
+    "kind": "square",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/410546875"
+    },
+    "lat": 38.630326,
+    "lon": -0.861490
+  },
+  {
+    "id": "plaza-rollo",
+    "name": "Plaza del Rollo",
+    "altNames": [],
+    "kind": "square",
+    "source": {
+      "dataset": "osm",
+      "ref": "relation/7869041"
+    },
+    "lat": 38.629878,
+    "lon": -0.862585
+  },
+  {
+    "id": "plaza-malvas",
+    "name": "Plaza de las Malvas",
+    "altNames": [
+      "Plaza las Malvas"
+    ],
+    "kind": "square",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/253823810"
+    },
+    "lat": 38.630017,
+    "lon": -0.864430
+  },
+  {
+    "id": "plaza-comunidad-valenciana",
+    "name": "Plaza Comunidad Valenciana",
+    "altNames": [],
+    "kind": "square",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/550465795"
+    },
+    "lat": 38.635412,
+    "lon": -0.864115
+  },
+  {
+    "id": "paseo-chapi",
+    "name": "Paseo Chapí",
+    "altNames": [
+      "Parque Chapí"
+    ],
+    "kind": "park",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/194943361"
+    },
+    "lat": 38.631571,
+    "lon": -0.866521
+  },
+  {
+    "id": "mirador-villa",
+    "name": "Mirador de la Villa",
+    "altNames": [],
+    "kind": "landmark",
+    "source": {
+      "dataset": "osm",
+      "ref": "node/13277775039"
+    },
+    "lat": 38.631611,
+    "lon": -0.861548
+  },
+  {
+    "id": "centro-recepcion-visitantes",
+    "name": "Centro de Recepción de Visitantes",
+    "altNames": [
+      "Oficina de Turismo del Castillo"
+    ],
+    "kind": "civic",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/696092479"
+    },
+    "lat": 38.632825,
+    "lon": -0.859813
+  },
+  {
+    "id": "tourist-info",
+    "name": "Oficina Tourist Info Villena",
+    "altNames": [
+      "Tourist Info"
+    ],
+    "kind": "civic",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/696092480"
+    },
+    "lat": 38.631216,
+    "lon": -0.863704
+  },
+  {
+    "id": "oficina-correos",
+    "name": "Oficina de Correos",
+    "altNames": [
+      "Correos Villena"
+    ],
+    "kind": "civic",
+    "source": {
+      "dataset": "osm",
+      "ref": "node/13237875901"
+    },
+    "lat": 38.629535,
+    "lon": -0.865339
+  },
+  {
+    "id": "policia-local",
+    "name": "Policía Local de Villena",
+    "altNames": [
+      "Comisaría de Policía Local"
+    ],
+    "kind": "civic",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/543006580"
+    },
+    "lat": 38.627661,
+    "lon": -0.862862
+  },
+  {
+    "id": "piscina-municipal",
+    "name": "Piscina Municipal",
+    "altNames": [
+      "Polideportivo Municipal"
+    ],
+    "kind": "park",
+    "source": {
+      "dataset": "osm",
+      "ref": "way/286606847"
+    },
+    "lat": 38.633632,
+    "lon": -0.868301
+  }
+]
