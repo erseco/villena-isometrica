@@ -89,4 +89,5 @@ def apply(curated: dict, solids: list[Part], clip) -> tuple[list[dict], set[str]
     feats.sort(key=lambda f: f["properties"]["id"])
     if len({f["properties"]["id"] for f in feats}) != len(feats):
         raise PipelineError("duplicate detail ids")
-    return feats, replaced, footprints, {"landmarks": len(curated), "details": len(feats), "partsReplaced": len(replaced)}
+    counts = {"landmarks": len(curated), "details": len(feats), "partsReplaced": len(replaced)}
+    return feats, replaced, footprints, counts
