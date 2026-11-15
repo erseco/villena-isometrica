@@ -76,3 +76,54 @@ beyond small research probes kept outside the repository.
 
 In parallel: `prompts/01-data-research.md`, `prompts/02-architecture-review.md`,
 `prompts/07-ci-cd.md`. Then the architect runs gate G1 (`prompts/00-bootstrap.md`, Task A).
+
+---
+
+# Gate G1 and integration round — 2026-11-15
+
+| Field | Value |
+|---|---|
+| Task | `prompts/00-bootstrap.md` Task A (gate G1), plus the integration of WP07, WP01 and WP03 at the owner's request |
+| Model and effort actually used | `claude-fable-5-2`; effort as set in the owner's session |
+| Branch | `feature/wp00-g1` @ `417f07e`, merged into `main` |
+| Status | DONE — `Contracts: FROZEN v1` |
+
+## What was done
+
+1. Reviewed and merged WP07 (`feature/wp07-ci-cd`) and WP01 (`agent/wp01-data-research`): both touched only
+   their allowed paths; `make install` and `make check` reproduced. One correction at integration: `curl -k`
+   removed from `cities/villena/ACQUISITION.md` (the IGN service validates over normal TLS; checked).
+2. Gate G1: every finding of the WP02 review recomputed, then accepted, rejected or deferred —
+   `docs/decisions/0007-g1-contract-freeze.md` has the table. Contracts, nine schemas, the validator and the
+   fixture generator updated; fixtures regenerated with no change to any expected value.
+3. Decisions beyond the review (same ADR): optional `structures` layer, fixed dataset ids, `ridgeHeightM`,
+   vertical datum and Catastro citation from WP01, `feature/` branch prefix, WP07's Python layout.
+4. WP03 adapted on its branch to the frozen contracts and WP01's real data, then merged
+   (`docs/handoffs/WP03-gis-pipeline.md`, round 2).
+5. Prompts 03–06 and 08 gained a "Frozen-contract notes" section; `AGENTS.md` lists the real commands.
+
+## Tests and validation executed
+
+| Command | Result |
+|---|---|
+| Independent recomputation of R-01, R-03, R-04, R-07, R-11 | reproduced (R-01 share 29.8 % vs the reviewer's 29.1 %) |
+| `make check` on `main` after each merge | pass; final: 10 documents valid, ruff clean, 31 tests, fixtures reproducible |
+| Validator negative cases (NaN, `X` in scene POIs, unsorted POIs, pitch 90) | all rejected |
+| `python3 scripts/check_size.py --self-test` | pass |
+| Real Villena scene, fallback mode, twice | identical hashes; validates |
+| GitHub Actions workflows | not run before this push |
+| Linux | not run |
+
+## Deviations from the process, on purpose
+
+- The architect also acted as integrator and edited WP03's code after the freeze. The owner asked for the
+  consolidation in one pass; the designated integrator (Codex Sol) did not take part.
+- WP03, written by Opus and adapted by Fable, has had no review by another provider. WP11 must cover it.
+- WP07's handoff was PARTIAL and WP03's first-round handoff was PARTIAL; both were merged after the checks
+  above rather than sent back.
+
+## Recommended next task
+
+In parallel: `prompts/04-render-engine.md`, `prompts/05-frontend.md`, `prompts/06-tile-export.md`.
+Owner: download the two IGN sheets.
+

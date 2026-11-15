@@ -24,7 +24,7 @@ constraint). Ubuntu Server is the second supported platform.
 | Full render | budget ≤ 10 min, ≤ 8 GB RAM | |
 | Tile export | < 2 min | |
 
-Each task worktree repeats environments and build outputs: keep worktrees outside Dropbox
+Each task worktree repeats environments and build outputs: keep worktrees outside any cloud-synced folder
 (`WORKTREE_ROOT`), and `make clean` finished ones.
 
 ## Size model
