@@ -187,8 +187,48 @@
           "dimensionsSource": "surface-model",
           "sides": 4,
           "rotationDeg": 56
+        },
+        {
+          "name": "nave",
+          "kind": "gable",
+          "E": 685943.1,
+          "N": 4278053.0,
+          "baseH": 508.0,
+          "heightM": 19.6,
+          "wallHeightM": 16.9,
+          "lengthM": 29.0,
+          "widthM": 13.5,
+          "rotationDeg": 56.3,
+          "material": "stone",
+          "roofMaterial": "tile",
+          "dimensionsSource": "surface-model",
+          "replacesParts": true
+        },
+        {
+          "name": "chapel-drum",
+          "kind": "cylinder",
+          "E": 685923.0,
+          "N": 4278066.5,
+          "baseH": 508.0,
+          "heightM": 18.7,
+          "radiusM": 8.0,
+          "material": "stone",
+          "dimensionsSource": "surface-model",
+          "replacesParts": true
+        },
+        {
+          "name": "chapel-roof",
+          "kind": "cone",
+          "E": 685923.0,
+          "N": 4278066.5,
+          "baseH": 526.7,
+          "heightM": 2.6,
+          "radiusM": 8.4,
+          "material": "tile",
+          "dimensionsSource": "surface-model"
         }
-      ]
+      ],
+      "note": "Nave under one two-pitch tile roof (eaves 524.9 m, ridge 527.6 m), an octagonal volume with a low tiled roof beside it (drawn round), and a square bell tower with a pyramidal spire."
     },
     "iglesia-santa-maria": {
       "references": [
@@ -208,8 +248,25 @@
           "dimensionsSource": "surface-model",
           "sides": 4,
           "rotationDeg": 73
+        },
+        {
+          "name": "nave",
+          "kind": "gable",
+          "E": 686178.6,
+          "N": 4277913.9,
+          "baseH": 507.0,
+          "heightM": 19.0,
+          "wallHeightM": 16.6,
+          "lengthM": 37.0,
+          "widthM": 14.0,
+          "rotationDeg": 77.5,
+          "material": "stone",
+          "roofMaterial": "tile",
+          "dimensionsSource": "surface-model",
+          "replacesParts": true
         }
-      ]
+      ],
+      "note": "Single nave under one two-pitch tile roof (eaves 523.6 m, ridge 526.0 m on the surface model) and a square bell tower with a pyramidal spire."
     },
     "plaza-de-toros": {
       "references": [
@@ -230,7 +287,8 @@
           "radiusM": 41.0,
           "material": "plaster",
           "dimensionsSource": "surface-model",
-          "replacesParts": true
+          "replacesParts": true,
+          "openings": "arcade"
         },
         {
           "name": "roof-ring",

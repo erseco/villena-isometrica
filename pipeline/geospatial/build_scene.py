@@ -82,11 +82,12 @@ def surface_model(city: City, clip_bounds) -> tuple[buildings.Surface, dict]:
                                                      "sameResolution": same_grid}
 
 
-def detect_trees(surface: buildings.Surface, parts: list[buildings.Part], mapped: list[dict]) -> list[dict]:
+def detect_trees(surface: buildings.Surface, parts: list[buildings.Part], mapped: list[dict],
+                 extra: list = ()) -> list[dict]:
     """Canopy peaks of the normalised surface model outside buildings and structures."""
     g = surface.grid
     nd = np.nan_to_num(surface.ndsm, nan=-1.0)
-    solid = [(p.footprint or p.geom).buffer(BUILDING_BUFFER) for p in parts]
+    solid = [g.buffer(BUILDING_BUFFER) for g in [(p.footprint or p.geom) for p in parts] + list(extra)]
     blocked = ~geometry_mask(solid, (g.height, g.width), g.transform) if solid else np.zeros(nd.shape, bool)
     half = CANOPY_WINDOW // 2
     local_max = sliding_window_view(np.pad(nd, half, constant_values=-1.0), (CANOPY_WINDOW, CANOPY_WINDOW)).max(
@@ -185,13 +186,13 @@ def build(city: City, out: Path, fallback: bool) -> dict:
     structs, scounts = buildings.build_structures(osm.structures(elements, clip_bounds, pois), parts, clip_bounds,
                                                   tgrid, terrain, surface, pois)
     curated = details.load(city.dir / "landmark-details.json", {p["id"] for p in pois})
-    detail_feats, replaced, dcounts = details.apply(curated, parts + structs, box(*clip_bounds))
+    detail_feats, replaced, detail_shapes, dcounts = details.apply(curated, parts + structs, box(*clip_bounds))
     parts = [p for p in parts if p.id not in replaced]
     structs = [p for p in structs if p.id not in replaced]
     solids = parts + structs
     trees = osm.mapped_trees(elements, clip_bounds)
     if surface is not None:
-        trees += detect_trees(surface, solids, trees)
+        trees += detect_trees(surface, solids, trees, detail_shapes)
 
     for p in pois:
         hit = next((b for b in solids if b.geom.covers(Point(p["E"], p["N"]))), None) \
