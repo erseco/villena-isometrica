@@ -99,3 +99,86 @@ none
 WP03: write `cities/villena/landmark-details.json` and emit `details.geojson` (+ `parapet` on the
 castle walls) for the castle, Plaza de Toros, Santiago and Santa María; then render the full v1.1
 scene without `--depth` and review the four landmarks in the contact-sheet style.
+
+## Round 2 — gable halls, arcades, masonry parts, curved-roof textures (2026-11-15)
+
+Started by merging `feature/wp00-aoi-landmarks` (fast-forward to `36e7aa2`: contract adds kind
+`gable` and cylinder `openings: "arcade"`, plus the GIS curation). Model claude-opus-5-5.
+
+### Changed files
+
+```
+pipeline/rendering/src/scene.ts               gable (lengthM, widthM, wallHeightM, roofMaterial) and openings, strict validation
+pipeline/rendering/src/geometry.ts            addGable: long walls, pentagonal end walls, two roof slopes
+pipeline/rendering/src/style.ts               gable walls/roofs, arcade, radial tile on cones, dome panel grid, stone/brick parts
+pipeline/rendering/test/detail-scene.ts       church rotated 70 deg (gable nave, rotated tower part, spire), small bullring
+pipeline/rendering/test/details.test.ts       rotation sign test, dome test, stone-part and arcade test, new validation cases
+pipeline/rendering/test/golden-details.json   regenerated (test/golden.json unchanged)
+pipeline/rendering/test/contact-sheet.ts      new crops (church, bullring)
+pipeline/rendering/docs/landmark-details-2x.png  regenerated, 114 655 bytes
+pipeline/rendering/README.md                  details section, tests, performance row
+docs/handoffs/WP04-landmark-details.md        this section
+```
+
+### What changed
+
+1. `gable`: hall centred on the point, ridge along bearing `rotationDeg`, walls in `material`
+   (masonry; on the long walls pilasters between ~6 m bays and one narrow arched slit per bay;
+   end walls plain), slopes in `roofMaterial` with the building-roof tile rows parallel to the
+   ridge (slate courses / metal seams for the other roof materials). Class 7, listed in the
+   `buildingId` index. Validation: `radiusM` forbidden on a gable; `lengthM`/`widthM`/
+   `wallHeightM`/`roofMaterial` required on a gable and forbidden elsewhere; `wallHeightM <
+   heightM`; `roofMaterial` ∈ tile/slate/metal.
+2. `openings: "arcade"` (cylinder only): two tiers of round-headed dark openings (≈ 2 × 3 m,
+   ≈ 4 m apart around the wall, from the arc position so chunk-independent) and a shadowed
+   cornice line between the tiers.
+3. Part `material: "stone"` now renders as the fortification masonry with no windows or doors.
+   `brick` adds 0.5 × 1 m courses and keeps the `use` window layout; `plaster` is plain limewash
+   with the window layout (unchanged).
+4. Tile cones/frustums: radial channels (~0.9 m at the eave) and darker panel seams (~8 m);
+   metal domes: faint meridian/parallel panel grid (texture radius on domes now uses the pixel's
+   distance from the axis, because the planar facets sag far inside a flat ellipsoid near the
+   crown and the analytic radius broke the meridians into dashes).
+5. Rotation test: the synthetic church is rotated 70° (heading 45°). The spire's extent and the
+   X of its front base corner and the gable's [left, top, right] are compared with values computed
+   in the test from projection.md with `Math.sin/cos`; the test also asserts the `-rotationDeg`
+   expectations differ by > 3 px. Mutation check: negating the rotation in the renderer's square
+   pyramid, and separately in the gable, makes this test fail (13.8 px off); reverted.
+6. Contact sheet regenerated and looked at (castle keep + tower; church with gable nave, tower
+   and slate spire; bullring with arcaded drum, radial-tile roof ring and gridded dome; turret and
+   frustum).
+
+### Tests and validation executed
+
+| Command | Result | Notes |
+|---|---|---|
+| `bun run lint` (pipeline/rendering) | pass | biome + tsc strict |
+| `bun test` (pipeline/rendering) | pass | 26 tests; `test/golden.json` unchanged |
+| linux/amd64 docker command from the README + `bun test` | pass | x86_64; fixture hashes equal `test/golden.json`; 26/26 incl. `golden-details.json` |
+| `bun run render` on `build/villena/scene` (read-only; output in the session scratchpad), no `--depth` | pass | 15 557 × 9 006 px, 11 600 parts, 10 637 trees, 21 details, 20.6 s, peak RSS 5.3 GB |
+| `make install` | pass | |
+| `make check` | pass (exit 0) | contracts, lint, Python 69 passed, viewer 17, renderer 26, integration 52 passed + 1 xfailed, fixtures match |
+
+### Looking at the real render (crops at 1–3×, scratchpad only)
+
+- Plaza de Toros: reads as a covered bullring — white arcaded drum with two tiers of arches and a
+  cornice, radial-tile roof ring, grey dome with a panel grid. Catastro parts of the bullring
+  (`5692001XH8759S_part5_z1/_z2`, 26–30 m, plaster) poke through the roof ring on the east side;
+  that is scene data (GIS), not renderer behaviour.
+- Santa María: stone gable nave with tile roof, slits and pilasters on the visible long wall;
+  the stone tower part now shows masonry without house windows; slate spire on top. The spire
+  (rotation 73°) does not exactly match the tower part's footprint, leaving a small notch of the
+  tower top visible beside the spire base (scene data).
+- Santiago: gable nave, masonry church parts, octagonal chapel drum with a radial-tile cone.
+- Castle and Torre del Homenaje: unchanged look (coursed stone, battlements, bartizans); they
+  read clearly.
+- Minor: on the large roof ring, where the radial channels run almost horizontally in the image
+  (back of the ring), the 1 px channel lines show some moiré. Left as is.
+
+### Known problems
+
+- The `-rotationDeg` discrimination relies on the fixture heading (45°); with a camera heading
+  where the two expectations coincide the guard assertion would fail loudly rather than pass
+  silently.
+- Gable end walls carry no openings (no data says which end is the façade).
+- Nothing pushed; owner approval needed for any publishing.

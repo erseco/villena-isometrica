@@ -1,6 +1,7 @@
 // bun test/contact-sheet.ts [out.png] — renders the detail scene at 8 px/m and writes crops of the
-// castle tower, the church spire and the dome on its drum side by side, magnified 2x
-// (nearest neighbour). Default output: docs/landmark-details-2x.png.
+// castle keep and tower, the church (gable nave, tower, spire), the bullring (arcaded drum, tile
+// roof ring, metal dome) and the turret and frustum side by side, magnified 2x (nearest
+// neighbour). Default output: docs/landmark-details-2x.png.
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -27,8 +28,8 @@ rmSync(dir, { recursive: true, force: true });
 // Local boxes [x0, y0, z0, x1, y1, z1] (m, z relative to H0) around each showcase object.
 const boxes = [
   [74, 74, 10, 98, 98, 30],
-  [70, 18, 6, 102, 48, 41],
-  [20, 100, 6, 36, 116, 20],
+  [56, 36, 4, 84, 62, 41],
+  [14, 94, 4, 42, 122, 20],
   [14, 42, 2, 42, 56, 20],
 ];
 const crops = boxes.map(([x0, y0, z0, x1, y1, z1]) => {

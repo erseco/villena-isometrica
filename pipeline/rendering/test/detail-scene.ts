@@ -1,9 +1,11 @@
 // Synthetic scene for the v1.1 landmark details: the Planeville fixture plus a battlemented keep,
-// a church tower with a slate spire, a castle tower, a dome on a drum, a turret and a frustum.
+// a church (gable nave, stone tower, slate spire; rotated 70 deg), a castle tower, a small
+// bullring (arcaded drum, tile roof ring, metal dome), a turret and a frustum.
 // Written to a directory as a real scene so the loader and its validation are exercised.
 import { createHash } from 'node:crypto';
 import { cpSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { cosDeg, sinDeg } from '../src/projection.ts';
 
 export const ROOT = resolve(import.meta.dir, '../../..');
 export const FIXTURE = resolve(ROOT, 'tests/fixtures/scene-synthetic');
@@ -13,17 +15,20 @@ const N0 = 4270000;
 // biome-ignore lint/suspicious/noExplicitAny: test data built by hand
 type Json = any;
 
-/** Base height of the fixture terrain near (x, y): the fixture slopes gently; 0.5 m sunk keeps the base hidden. */
-function groundH(x: number, y: number): number {
+/**
+ * Base height of the fixture terrain within r m of (x, y): the lowest of a few samples, 0.5 m
+ * sunk so the base stays hidden on the gentle slope.
+ */
+function groundH(x: number, y: number, r = 4): number {
   const t = JSON.parse(readFileSync(join(FIXTURE, 'scene.json'), 'utf8')).terrain;
   const buf = readFileSync(join(FIXTURE, t.path));
   const v = new DataView(buf.buffer, buf.byteOffset, buf.length);
   let lo = Infinity;
   for (const [dx, dy] of [
-    [-4, -4],
-    [4, -4],
-    [-4, 4],
-    [4, 4],
+    [-r, -r],
+    [r, -r],
+    [-r, r],
+    [r, r],
     [0, 0],
   ]) {
     const c = Math.round((E0 + x + dx - t.westE) / t.cellSize - 0.5);
@@ -40,46 +45,80 @@ export interface DetailSpec {
   at: [number, number];
   baseH: number;
   heightM: number;
-  radiusM: number;
   [k: string]: unknown;
 }
+
+/** The church, rotated so that its faces and its ridge have bearing CHURCH_ROT (deg). */
+export const CHURCH_ROT = 70;
+const [cl, cw] = [sinDeg(CHURCH_ROT), cosDeg(CHURCH_ROT)];
+/** Nave centre; the tower stands beside it on the north side, towards the east end. */
+export const NAVE_AT: [number, number] = [70, 46];
+export const TOWER_AT: [number, number] = [NAVE_AT[0] + 6 * cl - 7 * cw, NAVE_AT[1] + 6 * cw + 7 * cl];
+const NAVE_BASE = groundH(NAVE_AT[0], NAVE_AT[1], 11);
+export const TOWER_BASE = groundH(TOWER_AT[0], TOWER_AT[1]);
 
 /** The details of the synthetic scene (local x, y in `at`). */
 export function detailSpecs(): DetailSpec[] {
   const turretBase = groundH(36, 48);
-  const drumBase = groundH(28, 108);
+  const ringBase = groundH(28, 108, 12);
   return [
+    {
+      id: 'church-nave',
+      landmark: 'church',
+      kind: 'gable',
+      at: NAVE_AT,
+      baseH: NAVE_BASE,
+      heightM: 12,
+      lengthM: 22,
+      widthM: 8,
+      wallHeightM: 9,
+      rotationDeg: CHURCH_ROT,
+      material: 'stone',
+      roofMaterial: 'tile',
+    },
     {
       id: 'church-spire',
       landmark: 'church',
       kind: 'cone',
-      at: [91, 43],
-      baseH: 508.2 + 20,
+      at: TOWER_AT,
+      baseH: TOWER_BASE + 20,
       heightM: 11,
       radiusM: 3,
       sides: 4,
-      rotationDeg: 0,
+      rotationDeg: CHURCH_ROT,
       material: 'slate',
     },
     {
-      id: 'keep-dome',
-      landmark: 'keep',
+      id: 'ring-dome',
+      landmark: 'bullring',
       kind: 'dome',
       at: [28, 108],
-      baseH: drumBase + 5,
-      heightM: 3.5,
-      radiusM: 6,
+      baseH: ringBase + 11.5,
+      heightM: 2.5,
+      radiusM: 6.3,
       material: 'metal',
     },
     {
-      id: 'keep-drum',
-      landmark: 'keep',
+      id: 'ring-drum',
+      landmark: 'bullring',
       kind: 'cylinder',
       at: [28, 108],
-      baseH: drumBase,
-      heightM: 5,
-      radiusM: 6,
+      baseH: ringBase,
+      heightM: 9,
+      radiusM: 12,
       material: 'plaster',
+      openings: 'arcade',
+    },
+    {
+      id: 'ring-roof',
+      landmark: 'bullring',
+      kind: 'cone',
+      at: [28, 108],
+      baseH: ringBase + 9,
+      heightM: 2.5,
+      radiusM: 12.4,
+      topRadiusM: 6.5,
+      material: 'tile',
     },
     {
       id: 'keep-frustum',
@@ -147,18 +186,16 @@ export function writeDetailScene(
     type: 'Feature',
     geometry: {
       type: 'Polygon',
+      // Square 6 m tower whose face normals point at CHURCH_ROT + 90 k (corners 45 deg off).
       coordinates: [
-        [
-          [E0 + 88, N0 + 40],
-          [E0 + 94, N0 + 40],
-          [E0 + 94, N0 + 46],
-          [E0 + 88, N0 + 46],
-          [E0 + 88, N0 + 40],
-        ],
+        [0, 1, 2, 3, 0].map((k) => {
+          const b = CHURCH_ROT + 45 - 90 * k;
+          return [E0 + TOWER_AT[0] + 3 * Math.SQRT2 * sinDeg(b), N0 + TOWER_AT[1] + 3 * Math.SQRT2 * cosDeg(b)];
+        }),
       ],
     },
     properties: {
-      baseH: 508.2,
+      baseH: TOWER_BASE,
       buildingId: 'syn-006',
       floors: null,
       heightM: 20,

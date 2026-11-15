@@ -618,8 +618,69 @@ export function buildGeometry(scene: Scene, pr: Projection): Geometry {
 
   return { cells: Int32Array.from(cellList), tX, tY, tBand, polys, trees, surfaces, surfBase };
 
+  /**
+   * A gable hall: walls (Kind.Detail; edge 0 long wall, 1 end wall; ax, ay, ux, uy, len give the
+   * metres along the wall) and two roof slopes (Kind.DetailTop; ax, ay, ux, uy is the eave line
+   * with the ridge on its left, as for building roofs).
+   */
+  function addGable(det: Detail, di: number): void {
+    const { x: cx, y: cy, baseZ: z0 } = det;
+    const [lx, ly] = [sinDeg(det.rotationDeg), cosDeg(det.rotationDeg)];
+    // Across the ridge: the ridge direction turned 90 deg clockwise.
+    const [wx, wy] = [ly, -lx];
+    const [hl, hw] = [det.lengthM / 2, det.widthM / 2];
+    const zw = z0 + det.wallHeightM;
+    const zr = z0 + det.heightM;
+    const P = (a: number, b: number, z: number): V3 => [
+      cx + a * hl * lx + b * hw * wx,
+      cy + a * hl * ly + b * hw * wy,
+      z,
+    ];
+    const face = (pts: V3[], n: V3, kind: Kind, edge: number, a: V3, b: V3) => {
+      if (n[0] * pr.w[0] + n[1] * pr.w[1] + n[2] * pr.w[2] >= 0) return;
+      const [dx, dy] = [b[0] - a[0], b[1] - a[1]];
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const surf = addSurface({
+        kind,
+        owner: di,
+        band: band(...n),
+        ax: a[0],
+        ay: a[1],
+        ux: dx / len,
+        uy: dy / len,
+        len,
+        edge,
+        tex: RoofTex.Flat,
+      });
+      addPoly([pts], n, surf);
+    };
+    const k = (det.heightM - det.wallHeightM) / hw;
+    const kl = Math.sqrt(k * k + 1);
+    for (const b of [1, -1]) {
+      // Long wall on side b (runs along the ridge), then the roof slope above it.
+      const [a0, a1] = [P(-b, b, z0), P(b, b, z0)];
+      face([a0, a1, P(b, b, zw), P(-b, b, zw)], [b * wx, b * wy, 0], Kind.Detail, 0, a0, a1);
+      const e0 = P(-b, b, zw);
+      face(
+        [e0, P(b, b, zw), P(b, 0, zr), P(-b, 0, zr)],
+        [(b * k * wx) / kl, (b * k * wy) / kl, 1 / kl],
+        Kind.DetailTop,
+        2,
+        e0,
+        P(b, b, zw),
+      );
+      // End wall (vertical gable) at a = b.
+      const [g0, g1] = [P(b, b, z0), P(b, -b, z0)];
+      face([g0, g1, P(b, -b, zw), P(b, 0, zr), P(b, b, zw)], [b * lx, b * ly, 0], Kind.Detail, 1, g0, g1);
+    }
+  }
+
   /** A detail solid as planar facets around its axis (rings from the base up), plus merlons. */
   function addDetail(det: Detail, di: number): void {
+    if (det.kind === 'gable') {
+      addGable(det, di);
+      return;
+    }
     const { x: cx, y: cy, baseZ: z0, heightM: H, radiusM: R } = det;
     const square = det.kind === 'cone' && det.sides === 4;
     const n = square ? 4 : segmentsFor(R * pr.s);
