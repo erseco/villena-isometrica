@@ -16,7 +16,7 @@ jobs:
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
-      - run: make validate-contracts && make fixtures && test -z "$(git status --porcelain -- tests/fixtures)"
+      - run: make validate-contracts fixtures-check
   python:
     runs-on: ubuntu-latest
     steps:

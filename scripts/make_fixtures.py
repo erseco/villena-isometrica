@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pyproj>=3.6", "numpy>=1.26"]
+# dependencies = ["pyproj>=3.6"]
 # ///
 """Regenerate the synthetic contract fixtures. Run: `uv run scripts/make_fixtures.py`.
 
@@ -18,15 +18,17 @@ Outputs (all committed, all deterministic):
 """
 import hashlib
 import json
+from fractions import Fraction
 import math
+import os
 import struct
 import zlib
 from pathlib import Path
 
-import numpy as np
 from pyproj import Transformer
 
-ROOT = Path(__file__).resolve().parent.parent / "tests" / "fixtures"
+# FIXTURES_OUT redirects the output so scripts/check_fixtures.py can compare without touching the tree.
+ROOT = Path(os.environ.get("FIXTURES_OUT") or Path(__file__).resolve().parent.parent / "tests" / "fixtures")
 
 E0, N0, H0 = 700000.0, 4270000.0, 500.0
 SIZE, MARGIN = 128.0, 8.0
@@ -279,12 +281,26 @@ gn = int((SIZE + 2 * MARGIN) / gcell)
 
 from_geo = Transformer.from_crs("EPSG:4326", "EPSG:25830", always_xy=True)
 fit_pts = [(E0 + SIZE * i / 4, N0 + SIZE * j / 4) for i in range(5) for j in range(5)]
-ll = np.array([to_geo.transform(e, n_) for e, n_ in fit_pts])
-lon0, lat0 = ll.mean(axis=0)  # centre the unknowns so the fit is well conditioned
-A = np.column_stack([ll[:, 0] - lon0, ll[:, 1] - lat0, np.ones(len(ll))])
-coef, *_ = np.linalg.lstsq(A, np.array(fit_pts), rcond=None)  # 3x2
-geo_matrix = [[coef[0][k], coef[1][k], coef[2][k] - coef[0][k] * lon0 - coef[1][k] * lat0] for k in (0, 1)]
-check = [(e, n_, *to_geo.transform(e, n_)) for e in np.linspace(E0, E0 + SIZE, 9) for n_ in np.linspace(N0, N0 + SIZE, 9)]
+# Least-squares affine (lon, lat, 1) -> (E, N), solved exactly with fractions: floating-point least squares
+# (LAPACK) gives last-digit differences between platforms, which the constant terms amplify to 0.2 mm.
+ll = [tuple(map(Fraction, to_geo.transform(e, n_))) for e, n_ in fit_pts]
+lon0, lat0 = sum(p[0] for p in ll) / len(ll), sum(p[1] for p in ll) / len(ll)
+rows_a = [(lon - lon0, lat - lat0, Fraction(1)) for lon, lat in ll]
+ata = [[sum(r[i] * r[j] for r in rows_a) for j in range(3)] for i in range(3)]
+
+
+def det3(m):
+    return (m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+            + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]))
+
+
+geo_matrix = []
+for k in (0, 1):  # Cramer's rule on the normal equations, once for E and once for N
+    atb = [sum(r[i] * Fraction(pt[k]) for r, pt in zip(rows_a, fit_pts)) for i in range(3)]
+    c = [det3([[atb[i] if j == col else ata[i][j] for j in range(3)] for i in range(3)]) / det3(ata) for col in range(3)]
+    geo_matrix.append([float(c[0]), float(c[1]), float(c[2] - c[0] * lon0 - c[1] * lat0)])
+steps = [SIZE * i / 8 for i in range(9)]
+check = [(E0 + dx, N0 + dy, *to_geo.transform(E0 + dx, N0 + dy)) for dx in steps for dy in steps]
 residual = max(math.hypot(m[0][0] * lo + m[0][1] * la + m[0][2] - e, m[1][0] * lo + m[1][1] * la + m[1][2] - n_)
                for e, n_, lo, la in check for m in [geo_matrix])
 

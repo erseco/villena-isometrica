@@ -4,7 +4,7 @@ CITY ?= villena
 VITE_BASE ?= /villena-isometrica/
 RELEASE ?= local
 
-.PHONY: help fixtures validate-contracts check worktree install lint test e2e build scene render tiles validate-tiles site-tiles fetch-tiles size-check clean
+.PHONY: help fixtures fixtures-check validate-contracts check worktree install lint test e2e build scene render tiles validate-tiles site-tiles fetch-tiles size-check clean
 help: ## List targets
 	@grep -E '^[a-z0-9-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 22
 fixtures: ## Regenerate synthetic fixtures (architect only)
@@ -38,9 +38,9 @@ fetch-tiles: ## Fetch pinned release tiles (GITHUB_REPOSITORY required)
 	python3 scripts/fetch_tiles.py --city $(CITY)
 size-check: ## Check the viewer deployment budget
 	python3 scripts/check_size.py apps/viewer/dist
-check: validate-contracts lint test ## Validate contracts and available packages
-	@$(MAKE) fixtures
-	@test -z "$$(git status --porcelain -- tests/fixtures)" || { echo 'fixtures changed'; exit 1; }
+check: validate-contracts lint test fixtures-check ## Everything that must pass before a handoff
+fixtures-check: ## Committed fixtures equal the generator's output (by content, on any platform)
+	python3 scripts/check_fixtures.py
 clean: ## Remove build outputs and caches (never data)
 	rm -rf build apps/viewer/dist .pytest_cache .ruff_cache pipeline/.pytest_cache pipeline/.ruff_cache
 worktree: ## Create a task worktree: make worktree WP=07-ci-cd
