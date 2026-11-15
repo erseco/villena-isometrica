@@ -1,0 +1,40 @@
+{
+ "schemaVersion": "1.0",
+ "id": "synthville",
+ "name": "Synthville (GIS test data)",
+ "crs": {
+  "world": "EPSG:25830",
+  "geographic": "EPSG:4326",
+  "verticalDatum": "synthetic"
+ },
+ "aoi": {
+  "bounds": [
+   700000.0,
+   4270000.0,
+   700200.0,
+   4270200.0
+  ],
+  "marginM": 20.0
+ },
+ "origin": {
+  "E0": 700000.0,
+  "N0": 4270000.0,
+  "H0": 600.0
+ },
+ "camera": {
+  "headingDeg": 45,
+  "pitchDeg": 30,
+  "pixelsPerMetre": 4
+ },
+ "tiles": {
+  "tileSize": 256,
+  "tileOverlap": 1,
+  "format": "png"
+ },
+ "datasets": "datasets.json",
+ "attribution": [
+  {
+   "text": "Synthetic test data"
+  }
+ ]
+}

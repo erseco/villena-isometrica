@@ -1,0 +1,131 @@
+{
+ "schemaVersion": "1.0",
+ "cityId": "synthville",
+ "datasets": [
+  {
+   "id": "catastro-buildings",
+   "provider": "synthetic",
+   "name": "catastro-bu.zip",
+   "version": "1",
+   "acquisitionDate": "2026-01-01",
+   "coverage": "AOI + margin",
+   "url": "https://example.invalid/catastro-bu.zip",
+   "access": "direct",
+   "resolution": "vector",
+   "crs": "EPSG:25830",
+   "license": {
+    "name": "CC0-1.0",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "none"
+   },
+   "redistribution": {
+    "raw": true,
+    "derivatives": true
+   },
+   "sizeBytes": 1983,
+   "sha256": "d0288cb42b41236c6e50f1c6f391f0364d583fb9c32f972a571f0b3d880f0b92",
+   "localPath": "catastro-bu.zip",
+   "retrievedAt": "2026-01-01"
+  },
+  {
+   "id": "ign-mdt50cm",
+   "provider": "synthetic",
+   "name": "mdt.tif",
+   "version": "1",
+   "acquisitionDate": "2026-01-01",
+   "coverage": "AOI + margin",
+   "url": "https://example.invalid/mdt.tif",
+   "access": "manual",
+   "resolution": "0.5 m",
+   "crs": "EPSG:25830",
+   "license": {
+    "name": "CC0-1.0",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "none"
+   },
+   "redistribution": {
+    "raw": true,
+    "derivatives": true
+   },
+   "sizeBytes": 20235,
+   "sha256": "14a99f1499eef0e69b5ec7c296066d06d42acb3b3bd56295de6e107cfa16282e",
+   "localPath": "mdt.tif",
+   "retrievedAt": "2026-01-01"
+  },
+  {
+   "id": "ign-mds50cm",
+   "provider": "synthetic",
+   "name": "mds.tif",
+   "version": "1",
+   "acquisitionDate": "2026-01-01",
+   "coverage": "AOI + margin",
+   "url": "https://example.invalid/mds.tif",
+   "access": "manual",
+   "resolution": "0.5 m",
+   "crs": "EPSG:25830",
+   "license": {
+    "name": "CC0-1.0",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "none"
+   },
+   "redistribution": {
+    "raw": true,
+    "derivatives": true
+   },
+   "sizeBytes": 26895,
+   "sha256": "bec342f9a0d35c6477e653e12d38d6e0df1b158128e4c480eb26f5b544e74317",
+   "localPath": "mds.tif",
+   "retrievedAt": "2026-01-01"
+  },
+  {
+   "id": "ign-mdt05-wcs",
+   "provider": "synthetic",
+   "name": "mdt05.asc",
+   "version": "1",
+   "acquisitionDate": "2026-01-01",
+   "coverage": "AOI + margin",
+   "url": "https://example.invalid/mdt05.asc",
+   "access": "ogc-service",
+   "resolution": "5 m",
+   "crs": "EPSG:25830",
+   "license": {
+    "name": "CC0-1.0",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "none"
+   },
+   "redistribution": {
+    "raw": true,
+    "derivatives": true
+   },
+   "sizeBytes": 19017,
+   "sha256": "bbe62f71caf0e4c20e6e8e6c333e4f49114be85c1459fce3e9c404e382649d8a",
+   "localPath": "mdt05.asc",
+   "retrievedAt": "2026-01-01"
+  },
+  {
+   "id": "osm-overpass",
+   "provider": "synthetic",
+   "name": "overpass.json",
+   "version": "1",
+   "acquisitionDate": "2026-01-01",
+   "coverage": "AOI + margin",
+   "url": "https://example.invalid/overpass.json",
+   "access": "direct",
+   "resolution": "vector",
+   "crs": "EPSG:4326",
+   "license": {
+    "name": "CC0-1.0",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "none"
+   },
+   "redistribution": {
+    "raw": true,
+    "derivatives": true
+   },
+   "sizeBytes": 1965,
+   "sha256": "2e1fce54bebd98cce8f566d2b4b6ad1d6ff9fb942adc075effeb0163e317b24b",
+   "localPath": "overpass.json",
+   "retrievedAt": "2026-01-01"
+  }
+ ]
+}

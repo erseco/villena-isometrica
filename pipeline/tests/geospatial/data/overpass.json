@@ -1,0 +1,148 @@
+{
+ "version": 0.6,
+ "generator": "synthetic",
+ "osm3s": {
+  "timestamp_osm_base": "2026-01-01T00:00:00Z"
+ },
+ "elements": [
+  {
+   "type": "node",
+   "id": 9001,
+   "lat": 38.5572513,
+   "lon": -0.7041699,
+   "tags": {
+    "natural": "tree"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1001,
+   "nodes": [
+    0,
+    1,
+    2
+   ],
+   "geometry": [
+    {
+     "lat": 38.5565951,
+     "lon": -0.7051662
+    },
+    {
+     "lat": 38.5565636,
+     "lon": -0.7035607
+    },
+    {
+     "lat": 38.5565321,
+     "lon": -0.7019552
+    }
+   ],
+   "tags": {
+    "highway": "residential",
+    "name": "Calle Mayor"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1002,
+   "nodes": [
+    0,
+    1
+   ],
+   "geometry": [
+    {
+     "lat": 38.5566716,
+     "lon": -0.7044752
+    },
+    {
+     "lat": 38.5575721,
+     "lon": -0.7044466
+    }
+   ],
+   "tags": {
+    "highway": "residential",
+    "name": "Calle Nueva"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1003,
+   "nodes": [
+    0,
+    1
+   ],
+   "geometry": [
+    {
+     "lat": 38.5566424,
+     "lon": -0.7029844
+    },
+    {
+     "lat": 38.5575429,
+     "lon": -0.7029557
+    }
+   ],
+   "tags": {
+    "highway": "pedestrian",
+    "name": "Subida al Castillo",
+    "width": "3 m"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1004,
+   "nodes": [
+    0,
+    1
+   ],
+   "geometry": [
+    {
+     "lat": 38.5566401,
+     "lon": -0.7028697
+    },
+    {
+     "lat": 38.5567279,
+     "lon": -0.7027522
+    }
+   ],
+   "tags": {
+    "highway": "construction"
+   }
+  },
+  {
+   "type": "way",
+   "id": 2001,
+   "nodes": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "geometry": [
+    {
+     "lat": 38.5572074,
+     "lon": -0.7042287
+    },
+    {
+     "lat": 38.5571984,
+     "lon": -0.70377
+    },
+    {
+     "lat": 38.5574686,
+     "lon": -0.7037614
+    },
+    {
+     "lat": 38.5574776,
+     "lon": -0.7042201
+    },
+    {
+     "lat": 38.5572074,
+     "lon": -0.7042287
+    }
+   ],
+   "tags": {
+    "leisure": "park",
+    "name": "Jardín"
+   }
+  }
+ ]
+}
