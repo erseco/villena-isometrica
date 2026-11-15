@@ -1,0 +1,31 @@
+// Every user-visible string lives here so another language can be added later.
+export const es = {
+  title: 'Villena isométrica',
+  loading: 'Cargando el mapa…',
+  loadError: 'No se ha podido cargar el mapa.',
+  loadErrorHint: 'Comprueba tu conexión y recarga la página.',
+  searchLabel: 'Buscar un lugar',
+  searchPlaceholder: 'Buscar un lugar…',
+  resultsCount: (n: number) => (n === 1 ? '1 resultado' : `${n} resultados`),
+  noResults: 'Sin resultados',
+  zoomIn: 'Acercar',
+  zoomOut: 'Alejar',
+  home: 'Vista completa',
+  fullscreen: 'Pantalla completa',
+  exitFullscreen: 'Salir de pantalla completa',
+  about: 'Acerca de',
+  close: 'Cerrar',
+  style: 'Estilo',
+  mapLabel: 'Mapa isométrico. Flechas para desplazar, más y menos para acercar o alejar, 0 para la vista completa.',
+  approxPosition: 'Posición de la URL aproximada (sin rejilla de alturas)',
+  attribution: 'Datos y créditos',
+  aboutTitle: 'Acerca de este mapa',
+  aboutIntro: 'Mapa isométrico de píxel art de Villena (Alicante), generado a partir de datos abiertos y publicado como imágenes estáticas. No hay seguimiento ni servicios externos.',
+  aboutData: 'La geometría (edificios, terreno, calles) procede de los conjuntos de datos abiertos indicados en la barra de créditos.',
+  aboutCaveat: 'Las alturas de los edificios, las cubiertas y las fachadas son estimadas o procedurales y no un levantamiento topográfico. No uses este mapa como fuente oficial.',
+  aboutPick: 'La posición de la URL es el punto del terreno que hay tras el centro de la vista: al señalar un tejado se obtiene el suelo situado detrás del edificio, no su dirección.',
+  aboutLicence: 'El código y las ilustraciones se publican con las licencias indicadas en el repositorio; los datos conservan las suyas.',
+  repo: 'Repositorio del proyecto',
+}
+export type Strings = typeof es
+export const t: Strings = es
