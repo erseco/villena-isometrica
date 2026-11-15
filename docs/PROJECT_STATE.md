@@ -10,7 +10,7 @@ Last updated: 2026-11-15 (bootstrap).
 - **Contracts: PROPOSED v1** — not frozen. Freeze happens at gate G1 after WP02.
 - Phase 1 can start: **WP01, WP02, WP07** in parallel (`docs/EXECUTION_PLAN.md`).
 - The bootstrap is committed on branch `agent/wp00-bootstrap`; `main` must be fast-forwarded to it
-  before any worktree is created. Nothing is pushed; no remote exists.
+  before any worktree is created. Nothing was pushed by the bootstrap. A remote `origin` exists.
 
 ## Work packages
 
@@ -33,8 +33,8 @@ Last updated: 2026-11-15 (bootstrap).
 ## Decisions needed from the owner
 
 1. **Merge the bootstrap into `main`**: `git switch main && git merge --ff-only agent/wp00-bootstrap`.
-2. **Licences**: MIT for code, CC BY 4.0 for artwork/tiles/docs are proposals. Copyright
-   holder is written as "Villena Isométrica contributors".
+2. **Licences**: code is MIT (the owner's `LICENSE`). CC BY 4.0 for artwork, tiles and docs
+   is still a proposal.
 3. **Model access**: confirm which Codex "Sol"/"Terra" generation your plan includes
    (`codex debug models`); whether Gemini CLI works on your plan (`gemini` is not installed
    here); how you want DeepSeek used — chat UI bundles (free) or API (metered).
@@ -48,7 +48,8 @@ Last updated: 2026-11-15 (bootstrap).
    `../villena-isometrica-worktrees`, which is also inside Dropbox. Consider
    `make worktree WORKTREE_ROOT=~/worktrees/villena-isometrica …` to keep `node_modules`,
    virtualenvs and build outputs out of sync.
-8. **GitHub owner / remote**: unspecified; nothing assumes one.
+8. **GitHub owner**: a remote `origin` now exists, but the documents and prompts still use
+   `<github-owner>` placeholders, as the brief required. Say if they should be filled in.
 
 ## Open risks
 

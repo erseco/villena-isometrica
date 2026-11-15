@@ -5,7 +5,7 @@ work is offered. This is an engineering summary of the licence texts read on 202
 (`docs/research/01`, `02`, `03`, `05`), not legal advice. Where a text was not read in full or
 is silent, it says so.
 
-## Project licences (proposed — owner to confirm)
+## Project licences (code: decided by the owner; artwork and docs: proposed)
 
 | What | Licence |
 |---|---|
