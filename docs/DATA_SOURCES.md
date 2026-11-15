@@ -71,11 +71,23 @@ Total to download: about 200 MB. Disk for raw + intermediates + outputs: under 2
 | Google Photorealistic 3D Tiles, Earth, Street View | Licence forbids storing and deriving content. Never used. |
 | Sketchfab models of the castle | None found with a licence permitting reuse. |
 
-## Open questions (assigned to WP01)
+## Verified answers to open questions (WP01)
 
-1. Exact footprint of sheet 0845-8-2: research inferred it contains the AOI + margin (east
-   edge ≈ E 686 950); must be confirmed from the file or the sheet index.
-2. Name/EPSG of the vertical reference of the 3rd-coverage models; whether MDT and MDS share
-   a pixel grid; implications of "V1 provisional".
-3. Whether derived vector data from Catastro may be redistributed (rendered images may).
-4. Exact citation wording currently requested by Catastro and by the OSMF.
+1. **Exact footprint of sheet 0845-8-2:** Confirmed from official IGN auxiliary GeoPackages
+   (`Entornos_MDTv1_VAL_25830.gpkg` and `Entornos_MDSv1_Valencia_H30.gpkg`). Sheet bounds are
+   E 683,060.0–686,850.0, N 4,277,210.0–4,279,710.0 (EPSG:25830). The AOI plus 120 m margin
+   (E 685,380–686,620, N 4,277,380–4,278,620) is entirely within this single sheet with
+   hundreds of metres to spare (230 m east, 170 m south). No additional sheets are needed.
+2. **Vertical reference & pixel grid:** Orthometric heights referred to the Alicante tide gauge
+   (*mareógrafo de Alicante*), geoid **EGM08-REDNAP** (EPSG:5782). MDT50cm and MDS50cm share the
+   exact same 0.5 m pixel grid (7,580 × 5,000 cells) and identical spatial bounding box. "V1
+   provisional" designates the preliminary operational version published while post-processing
+   and 13-class semantic classification are completed by IGN.
+3. **Catastro derived vector redistribution:** Rendered tiles and images are explicitly permitted
+   transformed works ("obra diferente"). Distributing raw or clipped vector extracts is legally
+   ambiguous under Resolución de 23 de marzo de 2011 and Art. 21 TRLPI; therefore, scene vector
+   files remain internal build artifacts and are not published as public release assets.
+4. **Citation wording:**
+   - Catastro: `Fuente de edificios: Dirección General del Catastro, Ministerio de Hacienda (fecha de acceso: YYYY-MM-DD)`.
+   - IGN combined derived work: `Obra derivada de MDT50cm-cob3 2022-2025 y MDS50cm-cob3 2022-2025 CC-BY 4.0 scne.es`.
+   - OSM: `© OpenStreetMap contributors (ODbL)` (linking to https://www.openstreetmap.org/copyright). Rendered tiles confirmed as Produced Works under ODbL 4.3–4.5.
