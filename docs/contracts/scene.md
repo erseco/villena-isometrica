@@ -1,7 +1,8 @@
 # Contract: scene (GIS pipeline → renderer)
 
-Status: **v1 — proposed, pending WP02 review.** Schema:
-`packages/geo-contracts/schemas/scene-manifest.schema.json`. Fixture:
+Status: **v1 — FROZEN at gate G1 (2026-11-15)**; changes only through
+`prompts/00-bootstrap.md` Task B. Schemas: `scene-manifest.schema.json` and
+`scene-pois.schema.json` in `packages/geo-contracts/schemas/`. Fixture:
 `tests/fixtures/scene-synthetic/`.
 
 A *scene* is a directory, by default `build/<city>/scene/`, containing `scene.json` (the scene
@@ -17,8 +18,14 @@ never reads raw geodata, and the GIS pipeline never renders.
   Coordinates are rounded to 0.01 m. Polygons are valid, exterior rings counter-clockwise,
   no self-intersections, no duplicate consecutive vertices; multi-part geometries are exploded
   into single-part features.
-- Features are sorted by `id`; JSON keys are sorted; no timestamps. Same inputs → byte-identical
-  scene. `sha256` values in the manifest make this checkable.
+- Features and POIs are sorted by `id`; JSON keys are sorted; no timestamps. Same inputs →
+  byte-identical scene **from one producer**. `sha256` values in the manifest make this
+  checkable. JSON text is not comparable across languages (number formatting differs): tests
+  that cross a language boundary compare parsed values, with a tolerance of one unit in the
+  last rounded decimal — the rounding mode at exact ties is deliberately not specified.
+- Numbers are finite: `NaN` and `Infinity` are not JSON and are rejected at every boundary.
+- A consumer checks `schemaVersion` before validating against a schema (schemas are closed, so
+  a newer MINOR document fails an older schema on its new optional fields).
 - The scene covers the AOI grown by `aoi.marginM` on every side. Features are clipped to that
   rectangle. The terrain grid covers at least the same rectangle.
 - Every `id` is a string, unique within its layer and stable across pipeline runs (derived from
@@ -41,7 +48,8 @@ One feature per building *part* (a footprint region with a single height).
 | `id` | string | e.g. `<cadastral reference>_<part>` |
 | `buildingId` | string | groups parts of one building |
 | `baseH` | number | ground height at the footprint (minimum terrain under it), m |
-| `heightM` | number > 0 | height of the eaves/roof plane above `baseH`, m |
+| `heightM` | number > 0 | height of the **wall top** above `baseH`, m: the roof plane of a flat roof, the eaves of a pitched one. This is the extrusion height. |
+| `ridgeHeightM` | number > `heightM` (optional) | highest point of a pitched roof above `baseH`, m — present only when `roof` is `"pitched"` and the ridge was measured (`roofSource: "surface-model"`). Without it the renderer adds a procedural roof no higher than the 6 m roof allowance. The ridge **direction** is never data: it is always procedural. |
 | `heightSource` | `"surface-model"` \| `"floors"` \| `"default"` | how `heightM` was obtained |
 | `floors` | integer \| null | floors above ground from the source, if any |
 | `roof` | `"flat"` \| `"pitched"` \| `"unknown"` | only `"pitched"`/`"flat"` when data supports it |
@@ -60,11 +68,14 @@ One feature per building *part* (a footprint region with a single height).
 | `name` | string \| null | |
 | `layer` | integer | 0 = on the ground; bridges > 0, tunnels < 0 (tunnels are not rendered) |
 
-Roads are draped on the terrain by the renderer; no per-vertex heights.
+Roads are draped on the terrain by the renderer; no per-vertex heights. Bridges (`layer > 0`)
+are draped too in v0.1: a bridge over a cutting is drawn at ground level.
 
 ## landcover (`landcover.geojson`) — Polygon
 
-Non-overlapping polygons; anything not covered is rendered as the default ground.
+Non-overlapping polygons; anything not covered is rendered as the default ground. The producer
+resolves overlaps in the source data with a documented class priority; consumers may assume
+there are none.
 
 | Property | Type |
 |---|---|
@@ -79,16 +90,50 @@ Non-overlapping polygons; anything not covered is rendered as the default ground
 | `id` | string | |
 | `heightM` | number > 0 | |
 | `crownRadiusM` | number > 0 | |
-| `source` | `"mapped"` \| `"surface-model"` \| `"scattered"` | `"scattered"` = procedurally placed inside a woodland/park polygon with a fixed seed; decorative, not a real tree position |
+| `source` | `"mapped"` \| `"surface-model"` \| `"scattered"` | `"scattered"` = procedurally placed inside a woodland/park polygon; decorative, not a real tree position. Positions derive from a hash of the polygon `id` and an index — never from random-generator state — so reruns are identical. |
+
+## structures (`structures.geojson`, optional) — Polygon
+
+Footprints of landmark structures that Catastro does not model as buildings — in Villena, the
+castle's curtain walls and the town walls — taken from OpenStreetMap. Same properties and the
+same rendering as `buildings`, in a separate file because the source and its licence differ
+(OSM-derived data is never merged into the Catastro-derived layer).
+
+- Source features: the OSM building polygon (way or multipolygon) that contains a POI of kind
+  `landmark`, and OSM `barrier=city_wall` / `barrier=wall` lines inside a landmark polygon or
+  tagged as historic, buffered to their width. Area already covered by a Catastro building
+  part is subtracted, so nothing is drawn twice.
+- `id` = `osm-<type>-<id>[_z<n>]`, `buildingId` = `osm-<type>-<id>`, `floors` = null.
+- Heights follow the same rules and the same `heightSource` labels as buildings. Without a
+  surface model the height is the labelled default: an OSM outline says where a wall is, not
+  how tall it is.
 
 ## pois (`pois.json`)
 
-Same structure as `poi.schema.json` but `X`, `Y` are omitted: the tile-export step computes
-them with the final projection and writes the published file. Linear or large features
-(streets, squares) carry `worldBounds`, which the exporter turns into `imageBounds`.
+Validated by `scene-pois.schema.json`: the published POI record without `X`, `Y` and
+`imageBounds`, which the tile-export step computes with the final projection. Linear or large
+features (streets, squares) carry `worldBounds`, which the exporter turns into `imageBounds`.
+Sorted by `id`.
 
 ## zRange
 
-`zMin` ≤ (lowest terrain sample − 1 m) − H0 and `zMax` ≥ (highest of terrain, `baseH + heightM`
-+ roof allowance of 6 m, tree tops) + 1 m − H0. The renderer derives the master-image size
+`zMin` ≤ (lowest terrain sample − 1 m) − H0 and `zMax` ≥ (highest of: terrain; for every
+building part and structure `baseH + ridgeHeightM` when present, else `baseH + heightM` + the
+6 m roof allowance; tree tops) + 1 m − H0. Terrain in the margin counts. The renderer derives the master-image size
 from it (projection.md section 3), so it must be computed from the data, not guessed.
+
+## Pipeline inputs (dataset manifest)
+
+Not part of the renderer's contract, but fixed here because two work packages meet on it. The
+GIS pipeline finds its inputs in `cities/<city>/datasets.json` by these ids:
+
+| id | Content |
+|---|---|
+| `catastro-buildings` | Catastro INSPIRE Buildings zip |
+| `ign-mdt50cm` | IGN bare-earth model, 0.5 m (manual download) |
+| `ign-mds50cm` | IGN surface model, 0.5 m (manual download) |
+| `ign-mdt05` | IGN 5 m terrain, WCS response stored as received (fallback mode) |
+| `osm` | OpenStreetMap Overpass JSON for AOI + margin (ways with inline geometry or with node references — both are accepted) |
+
+`localPath` is relative to the repository root (the pipeline's `--data-root`), e.g.
+`data/raw/osm/osm-aoi-margin.json`. Curated POIs: `cities/<city>/poi-selection.json`.

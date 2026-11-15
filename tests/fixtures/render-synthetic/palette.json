@@ -1,0 +1,23 @@
+{
+ "colors": [
+  {
+   "hex": "#6fa85c",
+   "role": "ground-light"
+  },
+  {
+   "hex": "#5c934e",
+   "role": "ground-dark"
+  },
+  {
+   "hex": "#8a8f98",
+   "role": "road"
+  },
+  {
+   "hex": "#d93a3a",
+   "role": "poi-anchor-mark"
+  }
+ ],
+ "name": "planeville-fixture",
+ "schemaVersion": "1.0",
+ "version": "1"
+}

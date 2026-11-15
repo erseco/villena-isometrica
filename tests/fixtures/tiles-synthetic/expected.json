@@ -1,5 +1,5 @@
 {
- "description": "Ground points on the analytic terrain plane z = 0.10*x + 0.05*y (local metres). forward(E,N,H) must give X,Y within 1e-3 px; terrainPick(X,Y) must give E,N within 0.05 m (limited by the 0.01 m height quantisation); lon/lat come from PROJ and the geoToWorld affine must match them within manifest.geoToWorld.maxResidualM.",
+ "description": "Ground points on the analytic terrain plane z = 0.10*x + 0.05*y (local metres). forward(E,N,H) must give X,Y within 1e-3 px; terrainPick(X,Y) must give E,N within 0.05 m (a property of this planar terrain: only the 0.01 m height quantisation matters; on real terrain the pick is accurate to about cellSize/(2 tan pitch), see projection.md 5.2); lon/lat come from PROJ and the geoToWorld affine must match them within manifest.geoToWorld.maxResidualM.",
  "groundPoints": [
   {
    "E": 700000.0,

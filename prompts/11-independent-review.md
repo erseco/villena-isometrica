@@ -6,7 +6,7 @@
 | Recommended model | DeepSeek V4 Pro (`deepseek-v4-pro`), effort high — chat UI with a context bundle (free) or agentic client (metered, needs approval). A second reviewer from a provider that did not write the code under review is mandatory: Codex Sol (`gpt-6.1-sol`, high) for Claude-written packages, Claude Opus 5.5 (`claude-opus-5-5`, high) for Codex-written packages. |
 | Fallback | If DeepSeek is unavailable: the two cross-provider reviewers above cover everything between them. |
 | Escalate when | Any blocker → architect and owner before WP12 proceeds. |
-| Branch | `agent/wp11-independent-review` |
+| Branch | `feature/wp11-independent-review` |
 | Handoff report | `docs/handoffs/WP11-independent-review.md` |
 
 This prompt is self-contained: you need the repository and this file, nothing else.
@@ -16,7 +16,7 @@ This prompt is self-contained: you need the repository and this file, nothing el
 1. Read `AGENTS.md` completely. It is the canonical rule set; if this prompt conflicts with it,
    stop and report the conflict.
 2. Inspect the Git state: `git status`, `git branch --show-current`, `git log --oneline -5`.
-   You must be on branch `agent/wp11-independent-review` in a worktree of your own with a clean tree. If not, create
+   You must be on branch `feature/wp11-independent-review` in a worktree of your own with a clean tree. If not, create
    it with `make worktree WP=11-independent-review` (from the main checkout) or stop and ask.
 3. Verify every dependency in section 3. If one is missing or its check fails, do not invent a
    replacement: write a handoff with status BLOCKED that names what is missing, and stop.
@@ -167,6 +167,6 @@ known problems, approvals needed, READY / BLOCKED / PARTIAL status and the recom
 - Run every command in section 10 and report the **actual** results, including failures and
   anything you skipped. Do not claim a check passed unless you ran it and saw it pass.
 - Record changed files, important decisions and unresolved issues in the handoff report.
-- Commit on `agent/wp11-independent-review` with clear messages. Do not push, merge, tag, deploy, open issues or
+- Commit on `feature/wp11-independent-review` with clear messages. Do not push, merge, tag, deploy, open issues or
   pull requests, or spend money. Do not add AI-attribution trailers to commits.
 - Stop. Do not begin another work package.

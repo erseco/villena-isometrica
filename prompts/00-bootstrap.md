@@ -6,7 +6,7 @@
 | Recommended model | Claude Fable 5.2 (`claude-fable-5-2`), effort high, with the `architect` agent definition |
 | Fallback | Claude Opus 5.5 (`claude-opus-5-5`), effort high |
 | Escalate when | A decision changes v0.1.0 scope, cost or licensing → the human owner decides. |
-| Branch | `agent/wp00-bootstrap` |
+| Branch | `feature/wp00-bootstrap` |
 | Handoff report | `docs/handoffs/WP00-bootstrap.md` |
 
 This prompt is self-contained: you need the repository and this file, nothing else.
@@ -16,7 +16,7 @@ This prompt is self-contained: you need the repository and this file, nothing el
 1. Read `AGENTS.md` completely. It is the canonical rule set; if this prompt conflicts with it,
    stop and report the conflict.
 2. Inspect the Git state: `git status`, `git branch --show-current`, `git log --oneline -5`.
-   You must be on branch `agent/wp00-bootstrap` in a worktree of your own with a clean tree. If not, create
+   You must be on branch `feature/wp00-bootstrap` in a worktree of your own with a clean tree. If not, create
    it with `make worktree WP=00-bootstrap` (from the main checkout) or stop and ask.
 3. Verify every dependency in section 3. If one is missing or its check fails, do not invent a
    replacement: write a handoff with status BLOCKED that names what is missing, and stop.
@@ -158,6 +158,6 @@ known problems, approvals needed, READY / BLOCKED / PARTIAL status and the recom
 - Run every command in section 10 and report the **actual** results, including failures and
   anything you skipped. Do not claim a check passed unless you ran it and saw it pass.
 - Record changed files, important decisions and unresolved issues in the handoff report.
-- Commit on `agent/wp00-bootstrap` with clear messages. Do not push, merge, tag, deploy, open issues or
+- Commit on `feature/wp00-bootstrap` with clear messages. Do not push, merge, tag, deploy, open issues or
   pull requests, or spend money. Do not add AI-attribution trailers to commits.
 - Stop. Do not begin another work package.

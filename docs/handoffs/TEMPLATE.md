@@ -10,7 +10,7 @@ Report what actually happened, including failures.
 | Date (UTC) | YYYY-MM-DD |
 | Provider / client | e.g. OpenAI Codex CLI 0.x |
 | Model and effort actually used | exact model ID, effort |
-| Branch | `agent/wpxx-<slug>` |
+| Branch | `feature/wpxx-<slug>` |
 | Base commit | `git merge-base main HEAD` |
 | Head commit | hash, or "uncommitted" |
 | Status | READY FOR REVIEW / BLOCKED / PARTIAL |

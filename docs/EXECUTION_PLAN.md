@@ -54,7 +54,7 @@ in separate worktrees.
 | 1 | WP01 · WP02 · WP07 | Gemini Flash · DeepSeek Pro (chat bundle) · Codex Luna | integrator merges WP07 and WP01; architect runs G1 |
 | 2 | WP03 · WP04 · WP05 · WP06 | Opus · Codex Sol · Sonnet · Codex Sol (second session) | integrator merges each as it lands (G2); cross-provider review of each |
 | 3 | WP08 · real Villena build | Codex Luna · integrator | |
-| 4 | WP09 · WP11 (two reviewers) · WP10 Phase A (optional) | Codex Terra + Gemini · DeepSeek + cross-provider · Opus | fixes on new `agent/wpNN-fix-*` branches by the owning model |
+| 4 | WP09 · WP11 (two reviewers) · WP10 Phase A (optional) | Codex Terra + Gemini · DeepSeek + cross-provider · Opus | fixes on new `feature/wpNN-fix-*` branches by the owning model |
 | 5 | WP12 final round · architect review | Codex Sol · Fable | owner publishes |
 
 Human steps that cannot be delegated: download the two IGN sheets (once, ~175 MB, before WP03
@@ -71,7 +71,7 @@ WP02 → G1 → WP04 → WP06 → real build → WP09 → WP12, with WP07 and WP
 - One branch + one worktree per task; the integrator alone merges. Details: `AGENTS.md`.
 - A task that cannot proceed writes a BLOCKED handoff and stops; nobody improvises a contract.
 - Fixes after review go back to the model that owns the package, on a new branch
-  `agent/wpNN-fix-<topic>`, with the same prompt plus the finding IDs to address.
+  `feature/wpNN-fix-<topic>`, with the same prompt plus the finding IDs to address.
 
 ## Optional: GitHub issues and pull requests
 
