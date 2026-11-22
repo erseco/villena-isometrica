@@ -11,7 +11,10 @@ const exp = JSON.parse(read(new URL('expected.json', FIX)).toString())
 const vec = JSON.parse(read(VEC).toString())
 const cam = cameraOf(man)
 const gridBuf = read(new URL('height.u16', FIX))
-const grid = parseGrid(man.heightGrid!, gridBuf.buffer.slice(gridBuf.byteOffset, gridBuf.byteOffset + gridBuf.byteLength))
+const grid = parseGrid(
+  man.heightGrid!,
+  gridBuf.buffer.slice(gridBuf.byteOffset, gridBuf.byteOffset + gridBuf.byteLength),
+)
 const { zMin, zMax } = man.zRange
 
 describe('forward', () => {
@@ -24,9 +27,19 @@ describe('forward', () => {
   })
   test('contract vectors (u, v) within 1e-6 with a matrix built from the camera', () => {
     for (const c of vec.cameras) {
-      const a = (c.headingDeg * Math.PI) / 180, p = (c.pitchDeg * Math.PI) / 180, s = c.pixelsPerMetre
-      const k = { E0: 0, N0: 0, H0: 0, t: [0, 0],
-        m: [[s * Math.cos(a), -s * Math.sin(a), 0], [-s * Math.sin(a) * Math.sin(p), -s * Math.cos(a) * Math.sin(p), -s * Math.cos(p)]] }
+      const a = (c.headingDeg * Math.PI) / 180,
+        p = (c.pitchDeg * Math.PI) / 180,
+        s = c.pixelsPerMetre
+      const k = {
+        E0: 0,
+        N0: 0,
+        H0: 0,
+        t: [0, 0],
+        m: [
+          [s * Math.cos(a), -s * Math.sin(a), 0],
+          [-s * Math.sin(a) * Math.sin(p), -s * Math.cos(a) * Math.sin(p), -s * Math.cos(p)],
+        ],
+      }
       for (const pt of c.points) {
         const [u, v] = forward(k, ...(pt.xyz as [number, number, number]))
         expect(Math.abs(u - pt.u)).toBeLessThan(1e-6)

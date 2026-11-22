@@ -9,6 +9,16 @@ test('parse round trip is stable', () => {
   expect(formatHash(parseHash(h)!)).toBe(h)
 })
 test('invalid fragments give null', () => {
-  for (const h of ['', '#', '#map=', '#map=1/2', '#map=a/b/c', '#map=1/95/0', '#map=1/0/190', '#x=1/2/3', '#map=1/2/3/4'])
+  for (const h of [
+    '',
+    '#',
+    '#map=',
+    '#map=1/2',
+    '#map=a/b/c',
+    '#map=1/95/0',
+    '#map=1/0/190',
+    '#x=1/2/3',
+    '#map=1/2/3/4',
+  ])
     expect(parseHash(h)).toBeNull()
 })

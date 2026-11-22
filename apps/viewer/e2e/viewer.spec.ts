@@ -2,7 +2,9 @@ import { expect, test, type Page } from '@playwright/test'
 import { readFileSync } from 'node:fs'
 
 const FIX = new URL('../../../tests/fixtures/tiles-synthetic/', import.meta.url)
-const pois: { id: string; name: string; lat: number; lon: number }[] = JSON.parse(readFileSync(new URL('pois.json', FIX), 'utf8')).pois
+const pois: { id: string; name: string; lat: number; lon: number }[] = JSON.parse(
+  readFileSync(new URL('pois.json', FIX), 'utf8'),
+).pois
 const poi = (id: string) => pois.find((p) => p.id === id)!
 
 const hash = (page: Page) => page.evaluate(() => location.hash)
@@ -10,8 +12,11 @@ const zoomOf = (h: string) => Number(h.split('/')[0].replace('#map=', ''))
 
 /** Collect console errors and every request origin for the whole test. */
 function watch(page: Page) {
-  const errors: string[] = [], urls: string[] = []
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
+  const errors: string[] = [],
+    urls: string[] = []
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text())
+  })
   page.on('pageerror', (e) => errors.push(String(e)))
   page.on('request', (r) => urls.push(r.url()))
   return { errors, urls }
@@ -26,34 +31,52 @@ async function open(page: Page, h = '') {
 
 /** Centroid (viewport CSS px) of the fixture's red-cross pixels within `radius` CSS px of (cx, cy). */
 async function cross(page: Page, cx: number, cy: number, radius = 40) {
-  return page.evaluate(([cx, cy, radius]) => {
-    const c = document.querySelector<HTMLCanvasElement>('#map canvas')!
-    const r = c.getBoundingClientRect(), k = c.width / r.width
-    const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data
-    let sx = 0, sy = 0, n = 0
-    for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
-      const i = (y * c.width + x) * 4
-      if (Math.abs(d[i] - 0xd9) < 4 && Math.abs(d[i + 1] - 0x3a) < 4 && Math.abs(d[i + 2] - 0x3a) < 4) {
-        const px = r.left + x / k, py = r.top + y / k
-        if (Math.hypot(px - cx, py - cy) <= radius) { sx += px; sy += py; n++ }
-      }
-    }
-    return n ? { x: sx / n, y: sy / n, n } : null
-  }, [cx, cy, radius] as const)
+  return page.evaluate(
+    ([cx, cy, radius]) => {
+      const c = document.querySelector<HTMLCanvasElement>('#map canvas')!
+      const r = c.getBoundingClientRect(),
+        k = c.width / r.width
+      const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data
+      let sx = 0,
+        sy = 0,
+        n = 0
+      for (let y = 0; y < c.height; y++)
+        for (let x = 0; x < c.width; x++) {
+          const i = (y * c.width + x) * 4
+          if (Math.abs(d[i] - 0xd9) < 4 && Math.abs(d[i + 1] - 0x3a) < 4 && Math.abs(d[i + 2] - 0x3a) < 4) {
+            const px = r.left + x / k,
+              py = r.top + y / k
+            if (Math.hypot(px - cx, py - cy) <= radius) {
+              sx += px
+              sy += py
+              n++
+            }
+          }
+        }
+      return n ? { x: sx / n, y: sy / n, n } : null
+    },
+    [cx, cy, radius] as const,
+  )
 }
 const centreOf = async (page: Page) => {
   const b = (await page.locator('#map').boundingBox())!
   return { x: b.x + b.width / 2, y: b.y + b.height / 2 }
 }
 
-test('loads under the base path, tiles from the right URLs, same origin, no console errors', async ({ page, baseURL }) => {
+test('loads under the base path, tiles from the right URLs, same origin, no console errors', async ({
+  page,
+  baseURL,
+}) => {
   const { errors, urls } = watch(page)
   const tiles: string[] = []
-  page.on('response', (r) => { if (/\/procedural\//.test(r.url())) tiles.push(`${r.status()} ${new URL(r.url()).pathname}`) })
+  page.on('response', (r) => {
+    if (/\/procedural\//.test(r.url())) tiles.push(`${r.status()} ${new URL(r.url()).pathname}`)
+  })
   await open(page)
   expect(page.url()).toContain('/villena-isometrica/')
   expect(tiles.length).toBeGreaterThan(0)
-  for (const t of tiles) expect(t).toMatch(/^200 \/villena-isometrica\/tiles\/planeville\/procedural\/\d+\/\d+_\d+\.png$/)
+  for (const t of tiles)
+    expect(t).toMatch(/^200 \/villena-isometrica\/tiles\/planeville\/procedural\/\d+\/\d+_\d+\.png$/)
   const origin = new URL(baseURL!).origin
   for (const u of urls) if (!u.startsWith('data:')) expect(new URL(u).origin).toBe(origin)
   expect(errors).toEqual([])
@@ -88,7 +111,9 @@ test('drag and wheel change the view; double click is harmless', async ({ page, 
   const start = await hash(page)
   const c = await centreOf(page)
   await page.mouse.move(c.x, c.y)
-  await page.mouse.down(); await page.mouse.move(c.x + 80, c.y + 40, { steps: 6 }); await page.mouse.up()
+  await page.mouse.down()
+  await page.mouse.move(c.x + 80, c.y + 40, { steps: 6 })
+  await page.mouse.up()
   await expect.poll(() => hash(page)).not.toBe(start)
   const afterDrag = await hash(page)
   await page.mouse.wheel(0, -300)
@@ -121,7 +146,8 @@ test('search flies to a POI, marker sits on the red cross, URL deep link returns
   await expect(input).toHaveAttribute('aria-activedescendant', 'opt-0')
   await input.press('Enter')
   await expect.poll(() => hash(page)).not.toBe(before)
-  await page.waitForLoadState('networkidle'); await page.waitForTimeout(300)
+  await page.waitForLoadState('networkidle')
+  await page.waitForTimeout(300)
   const m = (await page.getByTestId('marker').boundingBox())!
   const mc = { x: m.x + m.width / 2, y: m.y + m.height / 2 }
   const x = await cross(page, mc.x, mc.y)
@@ -162,7 +188,9 @@ test('deep link to a ground POI centres its cross; URL is stable', async ({ page
   expect(x).not.toBeNull()
   expect(Math.hypot(x!.x - c.x, x!.y - c.y)).toBeLessThan(2)
   // hashchange moves the view
-  await page.evaluate(() => { location.hash = '#map=0.00/38.556518/-0.703975' })
+  await page.evaluate(() => {
+    location.hash = '#map=0.00/38.556518/-0.703975'
+  })
   await expect.poll(async () => zoomOf(await hash(page))).toBeCloseTo(0, 1)
 })
 
@@ -175,7 +203,10 @@ test('invalid or out-of-bounds fragments fall back to home without errors', asyn
   expect(errors).toEqual([])
 })
 
-for (const [w, h] of [[320, 568], [1440, 900]] as const) {
+for (const [w, h] of [
+  [320, 568],
+  [1440, 900],
+] as const) {
   test(`attribution visible at ${w}x${h}`, async ({ page }) => {
     await page.setViewportSize({ width: w, height: h })
     await open(page)
@@ -185,11 +216,17 @@ for (const [w, h] of [[320, 568], [1440, 900]] as const) {
     const b = (await credits.boundingBox())!
     expect(b.y + b.height).toBeLessThanOrEqual(h + 0.5)
     // nothing covers it
-    expect(await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('footer.credits') !== null, [b.x + 4, b.y + b.height / 2])).toBe(true)
+    expect(
+      await page.evaluate(
+        ([x, y]) => document.elementFromPoint(x, y)?.closest('footer.credits') !== null,
+        [b.x + 4, b.y + b.height / 2],
+      ),
+    ).toBe(true)
     // every control is at least 44 px and inside the viewport
     for (const btn of await page.locator('.tools button').all()) {
       const bb = (await btn.boundingBox())!
-      expect(bb.width).toBeGreaterThanOrEqual(44); expect(bb.height).toBeGreaterThanOrEqual(44)
+      expect(bb.width).toBeGreaterThanOrEqual(44)
+      expect(bb.height).toBeGreaterThanOrEqual(44)
       expect(bb.x + bb.width).toBeLessThanOrEqual(w)
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
@@ -202,7 +239,9 @@ test('keyboard only: search, zoom, home, fullscreen, about', async ({ page, isMo
   const seen: string[] = []
   for (let i = 0; i < 12; i++) {
     await page.keyboard.press('Tab')
-    seen.push(await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.id ?? ''))
+    seen.push(
+      await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.id ?? ''),
+    )
   }
   for (const n of ['Buscar un lugar', 'Acercar', 'Alejar', 'Vista completa', 'Pantalla completa', 'Acerca de'])
     expect(seen, n).toContain(n)
@@ -236,7 +275,9 @@ const mutateManifest = (page: Page, f: (m: Record<string, unknown>) => void) =>
   })
 
 test('unknown MAJOR schemaVersion shows the error state', async ({ page }) => {
-  await mutateManifest(page, (m) => { m.schemaVersion = '2.0' })
+  await mutateManifest(page, (m) => {
+    m.schemaVersion = '2.0'
+  })
   await page.goto('')
   await expect(page.locator('#status.error')).toBeVisible()
   await expect(page.locator('#map canvas')).toHaveCount(0)
@@ -244,7 +285,9 @@ test('unknown MAJOR schemaVersion shows the error state', async ({ page }) => {
 
 test('manifest without height grid: map works and positions are flagged approximate', async ({ page }) => {
   const { errors } = watch(page)
-  await mutateManifest(page, (m) => { delete m.heightGrid })
+  await mutateManifest(page, (m) => {
+    delete m.heightGrid
+  })
   await open(page)
   await expect(page.getByTestId('approx')).toBeVisible()
   expect(await hash(page)).toMatch(/^#map=/)
