@@ -1,0 +1,5 @@
+# Lint and format (bun lint, bun fmt): the viewer's style, single quotes without semicolons, 120 columns as the renderer.
+[fmt]
+printWidth = 120
+singleQuote = true
+semi = false

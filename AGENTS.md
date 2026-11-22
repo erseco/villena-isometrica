@@ -124,7 +124,7 @@ uv run scripts/validate_contracts.py <file.json>        # validate one manifest
 Python: one project in `pipeline/` (Python 3.13, uv, wheels only, not installed as a package):
 run modules through the `make` targets or with `PYTHONPATH=pipeline uv run --project pipeline
 python -m <module>`. JS packages are standalone: `bun run lint|test|build` inside each
-(Playwright runs on Node). `make fixtures` rewrites the synthetic fixtures and is the
+(Playwright runs on Bun, `bunx --bun`; lint, format and types are `bun lint`, `bun fmt` and `bun check`, ADR 0009). `make fixtures` rewrites the synthetic fixtures and is the
 architect's command; `make fixtures-check` (part of `make check`) compares them by content.
 
 ## Coding standards

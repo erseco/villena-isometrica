@@ -109,7 +109,7 @@ export interface Scene {
   details: Detail[];
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: parsed JSON is checked by the schema or by hand below
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- parsed JSON is checked by the schema or by hand below
 type Json = any;
 
 function fail(path: string, msg: string): never {

@@ -7,10 +7,10 @@
     "dev": "VITE_MANIFEST=tiles/planeville/manifest.json vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "tsc --noEmit",
+    "lint": "bun lint --deny-warnings && bun fmt --check && bun check",
     "test": "bun test src",
-    "fixture": "node scripts/fixture.mjs",
-    "e2e": "node scripts/fixture.mjs && playwright test"
+    "fixture": "bun scripts/fixture.mjs",
+    "e2e": "bun scripts/fixture.mjs && bunx --bun playwright test"
   },
   "dependencies": {
     "openseadragon": "6.1.1"
@@ -18,7 +18,6 @@
   "devDependencies": {
     "@playwright/test": "1.65.1",
     "@types/bun": "^1.4.4",
-    "typescript": "7.0.2",
     "vite": "8.3.8"
   }
 }

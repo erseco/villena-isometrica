@@ -12,7 +12,7 @@ export const FIXTURE = resolve(ROOT, 'tests/fixtures/scene-synthetic');
 const E0 = 700000;
 const N0 = 4270000;
 
-// biome-ignore lint/suspicious/noExplicitAny: test data built by hand
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test data built by hand
 type Json = any;
 
 /**

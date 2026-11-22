@@ -10,7 +10,7 @@ paid service or generative AI.
 bun ci
 bun run render --scene ../../tests/fixtures/scene-synthetic \
   --city ../../tests/fixtures/city-synthetic/city.json --out ../../build/planeville/render [--depth] [--chunk 2048]
-bun run lint     # biome (recommended rules, warnings are errors) + tsc --noEmit (strict)
+bun run lint     # bun lint (warnings are errors) + bun fmt --check + bun check (strict)
 bun run test     # bun test: projection vectors, golden pixel hashes, chunking, registration, CLI errors
 bun run build    # type-check only (the package runs from source under Bun)
 ```
@@ -189,15 +189,15 @@ same golden hashes and passed all 26 tests.
 
 ## Performance (Apple M5, 24 GB, Bun 1.4.4)
 
-| Scene | Image | Time | Peak RSS |
-|---|---|---|---|
-| Synthetic fixture | 726 × 481 | 0.1 s | 73 MB |
-| Villena fallback scene (7 721 parts, 1 m terrain, 505 roads) | 11 314 × 6 836 | 10.2 s | 3.0 GB |
-| same, `--depth --chunk 1500` | 11 314 × 6 836 | 14.9 s | 4.2 GB |
-| same, `linux/amd64` container under emulation | 11 314 × 6 836 | 19.7 s | 2.6 GB |
-| Villena full scene (8 108 parts, 4 789 trees) + 60 test details | 11 314 × 6 981 | 11.8 s | 2.9 GB |
-| same, `--depth` | 11 314 × 6 981 | 17.2 s | 4.6 GB |
-| Villena v1.1 scene (11 600 parts, 10 637 trees, 21 details), no `--depth` | 15 557 × 9 006 | 20.6 s | 5.3 GB |
+| Scene                                                                     | Image          | Time   | Peak RSS |
+| ------------------------------------------------------------------------- | -------------- | ------ | -------- |
+| Synthetic fixture                                                         | 726 × 481      | 0.1 s  | 73 MB    |
+| Villena fallback scene (7 721 parts, 1 m terrain, 505 roads)              | 11 314 × 6 836 | 10.2 s | 3.0 GB   |
+| same, `--depth --chunk 1500`                                              | 11 314 × 6 836 | 14.9 s | 4.2 GB   |
+| same, `linux/amd64` container under emulation                             | 11 314 × 6 836 | 19.7 s | 2.6 GB   |
+| Villena full scene (8 108 parts, 4 789 trees) + 60 test details           | 11 314 × 6 981 | 11.8 s | 2.9 GB   |
+| same, `--depth`                                                           | 11 314 × 6 981 | 17.2 s | 4.6 GB   |
+| Villena v1.1 scene (11 600 parts, 10 637 trees, 21 details), no `--depth` | 15 557 × 9 006 | 20.6 s | 5.3 GB   |
 
 The details add about 0.6 s on that scene (11.2 s without them). The budget is 10 minutes and
 8 GB; at the v1.1 AOI the measured 5.3 GB without `--depth` leaves room, while `--depth` would
@@ -206,14 +206,12 @@ need ≈ 8 GB (extrapolated, not run), so render the full city without `--depth`
 
 ## Dependencies (pinned in `bun.lock`)
 
-| Package | Version | Licence | Use |
-|---|---|---|---|
-| ajv | 8.20.0 | MIT | validate `scene.json` and `city.json` against the contract schemas |
-| fast-deep-equal, json-schema-traverse, require-from-string | 3.1.3, 1.0.0, 2.0.2 | MIT | ajv dependencies |
-| fast-uri | 3.1.9 | BSD-3-Clause | ajv dependency |
-| @biomejs/biome (dev) | 2.6.8 | MIT OR Apache-2.0 | lint and format check |
-| typescript (dev) | 7.0.2 | Apache-2.0 | strict type-check |
-| @types/bun (dev; brings bun-types, @types/node, undici-types) | 1.4.4 | MIT | types |
+| Package                                                       | Version             | Licence      | Use                                                                |
+| ------------------------------------------------------------- | ------------------- | ------------ | ------------------------------------------------------------------ |
+| ajv                                                           | 8.20.0              | MIT          | validate `scene.json` and `city.json` against the contract schemas |
+| fast-deep-equal, json-schema-traverse, require-from-string    | 3.1.3, 1.0.0, 2.0.2 | MIT          | ajv dependencies                                                   |
+| fast-uri                                                      | 3.1.9               | BSD-3-Clause | ajv dependency                                                     |
+| @types/bun (dev; brings bun-types, @types/node, undici-types) | 1.4.4               | MIT          | types                                                              |
 
 Bun 1.4.4 itself runs the package; its bundled zlib encodes the PNGs.
 

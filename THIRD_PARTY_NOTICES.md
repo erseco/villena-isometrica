@@ -24,9 +24,7 @@ here, with licences, as packages are added:
 | ajv 8.20.0 (+ fast-deep-equal, json-schema-traverse, require-from-string) | renderer (runtime) | MIT |
 | fast-uri 3.1.9 | renderer (runtime, via ajv) | BSD-3-Clause |
 | vite 8.3.8 | viewer (build) | MIT |
-| typescript 7.0.2 | viewer, renderer (dev) | Apache-2.0 |
 | @playwright/test 1.65.1 | viewer (dev) | Apache-2.0 |
-| @biomejs/biome 2.6.8 | renderer (dev) | MIT OR Apache-2.0 |
 | @types/bun 1.4.4 (+ bun-types, @types/node, undici-types) | viewer, renderer (dev) | MIT |
 | Python packages pinned in `pipeline/uv.lock` | pipeline | see the lock file; transitive licences not yet audited (WP11) |
 
