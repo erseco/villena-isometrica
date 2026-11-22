@@ -33,14 +33,15 @@ jobs:
           enable-cache: true
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: 1.4.4
+          # make check runs bun lint, which only ships in Bun canary so far (ADR 0009).
+          bun-version: canary
       - run: make install check
       - run: |
           if [ -f apps/viewer/package.json ]; then
             cd apps/viewer
             bun run fixture
             VITE_BASE=/villena-isometrica/ bun run build
-            bunx playwright install --with-deps chromium
+            bunx --bun playwright install --with-deps chromium
             bun run e2e
           fi
       # the e2e fixture city must not be published

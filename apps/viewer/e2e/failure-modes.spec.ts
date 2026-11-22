@@ -23,7 +23,9 @@ function watch(page: Page) {
 test('one tile that 404s: the other tiles load and the viewer keeps working', async ({ page }) => {
   const pageErrors = watch(page)
   const status = new Map<string, number>()
-  page.on('response', (r) => { if (/\/procedural\//.test(r.url())) status.set(new URL(r.url()).pathname.split('/procedural/')[1], r.status()) })
+  page.on('response', (r) => {
+    if (/\/procedural\//.test(r.url())) status.set(new URL(r.url()).pathname.split('/procedural/')[1], r.status())
+  })
   await page.route(/\/procedural\/10\/1_0\.png$/, (r) => r.fulfill({ status: 404, body: '' }))
   await open(page, '#map=2.00/38.556518/-0.703975') // deep zoom at the centre: level-10 tiles are requested
   await page.getByRole('button', { name: 'Acercar' }).click()
@@ -43,7 +45,9 @@ test('one tile that 404s: the other tiles load and the viewer keeps working', as
   await expect.poll(() => hash(page)).not.toBe(before)
 })
 
-test('height grid 404: falls back to reference-plane picking, flags it, and still produces a share URL', async ({ page }) => {
+test('height grid 404: falls back to reference-plane picking, flags it, and still produces a share URL', async ({
+  page,
+}) => {
   const pageErrors = watch(page)
   await page.route('**/height.u16', (r) => r.fulfill({ status: 404, body: '' }))
   await open(page)
@@ -94,15 +98,19 @@ test('a background pixel has no pick: the URL and the marker stay where they wer
   await page.waitForTimeout(500)
   await page.waitForLoadState('networkidle')
   const TIP = { X: 363, Y: 470 }
-  const centreIsBackground = () => page.evaluate(() => {
-    const c = document.querySelector<HTMLCanvasElement>('#map canvas')!
-    const [r, g, b, a] = c.getContext('2d')!.getImageData(Math.floor(c.width / 2), Math.floor(c.height / 2), 1, 1).data
-    return r === 0x1b && g === 0x26 && b === 0x32 && a === 255 // the manifest's background #1b2632, a loaded tile
-  })
+  const centreIsBackground = () =>
+    page.evaluate(() => {
+      const c = document.querySelector<HTMLCanvasElement>('#map canvas')!
+      const [r, g, b, a] = c
+        .getContext('2d')!
+        .getImageData(Math.floor(c.width / 2), Math.floor(c.height / 2), 1, 1).data
+      return r === 0x1b && g === 0x26 && b === 0x32 && a === 255 // the manifest's background #1b2632, a loaded tile
+    })
   // image X of the viewport centre, from the marker (anchored at TIP) and the zoom in the URL (CSS px per image px)
   const centreX = async () => {
     const z = 2 ** zoomOf(await hash(page))
-    const m = (await page.getByTestId('marker').boundingBox())!, v = (await page.locator('#map').boundingBox())!
+    const m = (await page.getByTestId('marker').boundingBox())!,
+      v = (await page.locator('#map').boundingBox())!
     return TIP.X + (v.x + v.width / 2 - (m.x + m.width / 2)) / z
   }
   await page.locator('#map').focus()

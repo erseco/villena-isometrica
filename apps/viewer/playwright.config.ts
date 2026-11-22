@@ -11,7 +11,7 @@ export default defineConfig({
   use: { baseURL: `http://localhost:${PORT}/villena-isometrica/`, reducedMotion: 'reduce', trace: 'off' },
   webServer: {
     // Separate outDir so the e2e build (fixture manifest) never replaces dist/.
-    command: `npx vite build --outDir dist-e2e --emptyOutDir && npx vite preview --outDir dist-e2e --port ${PORT} --strictPort`,
+    command: `bunx --bun vite build --outDir dist-e2e --emptyOutDir && bunx --bun vite preview --outDir dist-e2e --port ${PORT} --strictPort`,
     env,
     url: `http://localhost:${PORT}/villena-isometrica/`,
     reuseExistingServer: false,

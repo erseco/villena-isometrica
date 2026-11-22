@@ -1,5 +1,9 @@
 // Shareable position: #map=<zoom>/<lat>/<lon> (projection.md §6).
-export interface MapHash { zoom: number; lat: number; lon: number }
+export interface MapHash {
+  zoom: number
+  lat: number
+  lon: number
+}
 
 const NUM = '(-?\\d+(?:\\.\\d+)?)'
 const RE = new RegExp(`^#?map=${NUM}/${NUM}/${NUM}$`)

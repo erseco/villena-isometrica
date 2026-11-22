@@ -8,7 +8,7 @@ Three.js or Blender for rendering, one repository, optional Docker.
 
 ## Decision
 - Viewer: Vite 8, TypeScript (strict), OpenSeadragon 6, vanilla DOM, Bun as package manager;
-  Playwright runs on Node.
+  Playwright runs on Node (superseded by ADR 0009: Playwright runs on Bun).
 - GIS and export: Python 3.13 with `uv`, wheels only (GeoPandas, pyogrio, Rasterio, Shapely,
   PyProj, NumPy, Pillow). No system GDAL, no PDAL, no Docker.
 - Renderer: TypeScript (ADR 0002).

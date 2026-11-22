@@ -1,0 +1,8 @@
+# Lint and format (bun lint, bun fmt), as biome.json did: src/ and test/, 120 columns, single quotes.
+[lint]
+ignorePatterns = ["docs/"]
+
+[fmt]
+printWidth = 120
+singleQuote = true
+ignorePatterns = ["docs/", "palette.json"]

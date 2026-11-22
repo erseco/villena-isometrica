@@ -11,19 +11,19 @@ bun ci                 # install (committed bun.lock)
 bun run fixture        # copy tests/fixtures/tiles-synthetic/ to public/tiles/planeville/ (git-ignored)
 bun run dev            # dev server on the fixture
 bun run build          # production build to dist/
-bun run lint           # tsc --noEmit (strict)
+bun run lint           # bun lint + bun fmt --check + bun check (strict)
 bun run test           # unit tests (bun test)
 bun run e2e            # fixture + Playwright (Chromium desktop + Pixel 5 emulation) against a built vite preview
-npx playwright install chromium   # first time only
+bunx --bun playwright install chromium   # first time only
 ```
 
 ## Environment variables (build time)
 
-| Variable | Default | Meaning |
-|---|---|---|
-| `VITE_BASE` | `/villena-isometrica/` | Public base path. Every URL is built from it. |
+| Variable        | Default                       | Meaning                                                                                    |
+| --------------- | ----------------------------- | ------------------------------------------------------------------------------------------ |
+| `VITE_BASE`     | `/villena-isometrica/`        | Public base path. Every URL is built from it.                                              |
 | `VITE_MANIFEST` | `tiles/villena/manifest.json` | Manifest path, relative to the base. `dev` and `e2e` use `tiles/planeville/manifest.json`. |
-| `VITE_REPO_URL` | unset | Repository link in the About dialog; hidden when unset. |
+| `VITE_REPO_URL` | unset                         | Repository link in the About dialog; hidden when unset.                                    |
 
 Tiles, `pois.json` and the height grid are resolved relative to the manifest URL; `tilesBase`
 may also be an absolute https URL. Swapping `public/tiles/<city>/` is all it takes to change the map.

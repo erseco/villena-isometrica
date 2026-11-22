@@ -6,16 +6,14 @@
   "license": "MIT",
   "scripts": {
     "render": "bun src/cli.ts",
-    "lint": "biome check --error-on-warnings src test && tsc --noEmit -p .",
+    "lint": "bun lint --deny-warnings && bun fmt --check && bun check",
     "test": "bun test",
-    "build": "tsc --noEmit -p ."
+    "build": "bun check"
   },
   "dependencies": {
     "ajv": "8.20.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.8",
-    "@types/bun": "1.4.4",
-    "typescript": "7.0.2"
+    "@types/bun": "1.4.4"
   }
 }
